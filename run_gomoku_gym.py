@@ -15,14 +15,14 @@ while not episode_over:
     episode_over = terminated or truncated
 
     # play against human 
-    """
-    if info["valid"]:
-        valid = False
-        while not valid:
-            x = int(input())
-            y = int(input())
-            observation, reward, terminated, truncated, info = env.step(np.array([x, y]))
-            valid = info["valid"]"
-            """
+    
+    # if info["valid"]:
+    #     valid = False
+    #     while not valid:
+    #         x = int(input())
+    #         y = int(input())
+    #         observation, reward, terminated, truncated, info = env.step(np.array([x, y]))
+    #         valid = info["valid"]
+            
 
 env.close()
