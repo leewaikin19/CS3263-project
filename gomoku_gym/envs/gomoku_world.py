@@ -44,7 +44,7 @@ class GridWorldEnv(gym.Env):
         valid = (((self._p1[action[1]] >> action[0]) & 1) == 0) and ((self._p2[action[1]] >> action[0]) & 1) == 0
 
         if valid:
-            print(action, self.player)
+            # print(action, self.player)
             if self.player == 1:
                 self._p1[action[1]] = self._p1[action[1]] | (1 << action[0])
             elif self.player == 2:
@@ -108,3 +108,11 @@ class GridWorldEnv(gym.Env):
             print("  ", combined, 14-row)
         print("Idx 1 1 1 1 1 9 8 7 6 5 4 3 2 1 0")
         print("    4 3 2 1 0")
+
+    def _get_valid_moves(env):
+        valid_moves = []
+        for row in range(15):
+            for col in range(15):
+                if (((env._p1[row] >> col) & 1) == 0) and (((env._p2[row] >> col) & 1) == 0):
+                    valid_moves.append((col, row))
+        return valid_moves
