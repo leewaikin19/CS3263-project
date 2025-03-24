@@ -87,8 +87,7 @@ class GridWorldEnv(gym.Env):
         if np.count_nonzero(np.unpackbits(hor.view(np.uint8))) > 0:
             return True
         
-        arr = np.transpose(arr)
-        vert = arr & (arr << 1) & (arr << 2) & (arr << 3) & (arr << 4)
+        vert = arr[4:] & arr[3:-1] & arr[2:-2] & arr[1:-3] & arr[:-4]
         if np.count_nonzero(np.unpackbits(vert.view(np.uint8))) > 0:
             return True
         
