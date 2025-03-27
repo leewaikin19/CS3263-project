@@ -1,0 +1,108 @@
+import math
+import copy
+import random
+import numpy as np
+import torch
+from networks import GomokuNet, board_to_tensor
+
+class NetworkNode:
+    def __init__(self, env, player, parent, network):
+        self.env = env
+        self.player = player
+        self.parent = parent
+        self.network = network
+        self.children = {}
+        self.N = 0
+        self.W = 0  # Total value
+        self.Q = 0  # Mean value
+        self.P = None  # Prior probabilities
+        
+        # Get neural network predictions
+        with torch.no_grad():
+            board_tensor = board_to_tensor(env, player)
+            log_probs, value = network(board_tensor)
+            self.P = torch.exp(log_probs).view(15, 15).numpy()
+            self.V = value.item()
+        
+        self.valid_moves = self.env.unwrapped._get_valid_moves()
+        
+    def UCB_score(self):
+        if self.N == 0:
+            return float('inf')  # Always explore unvisited nodes
+        return self.Q + 1.0 * math.sqrt(math.log(self.parent.N) / (1 + self.N))
+    
+    def is_terminal(self):
+        p1_win = self.env.unwrapped._win(self.env.unwrapped._p1)
+        p2_win = self.env.unwrapped._win(self.env.unwrapped._p2)
+        no_moves = len(self.env.unwrapped._get_valid_moves()) == 0
+        return p1_win or p2_win or no_moves
+    
+    def best_child(self):
+        return max(self.children.values(), key=lambda child: child.UCB_score())
+    
+    def most_visited_child(self):
+        return max(self.children.values(), key=lambda child: child.N)
+
+class NetworkMCTS:
+    def __init__(self, env, player, network):
+        self.env = env
+        self.network = network
+        self.root = NetworkNode(copy.deepcopy(env), player, None, network)
+    
+    def search(self, num_simulations=800):
+        for _ in range(num_simulations):
+            node = self._select()
+            value = self._evaluate(node)
+            self._backpropagate(node, value)
+        
+        best_child = self.root.most_visited_child()
+        # Return action as a tuple (x,y)
+        return next(move for move, child in self.root.children.items() if child == best_child)
+    
+    def _select(self):
+        current = self.root
+        while current.children:
+            current = current.best_child()
+        
+        if not current.is_terminal() and current.N > 0:
+            self._expand(current)
+            current = current.best_child()
+        
+        return current
+    
+    def _expand(self, node):
+        valid_moves = node.valid_moves
+        total_p = sum(node.P[y, x] for (x, y) in valid_moves)
+        
+        for move in valid_moves:
+            x, y = move
+            new_env = copy.deepcopy(node.env)
+            new_env.step(np.array(move))
+            child = NetworkNode(new_env, 3 - node.player, node, self.network)
+            node.children[move] = child
+    
+    def _evaluate(self, node):
+        if node.is_terminal():
+            if node.env.unwrapped._win(node.env.unwrapped._p1):
+                return 1 if node.player == 1 else -1
+            elif node.env.unwrapped._win(node.env.unwrapped._p2):
+                return 1 if node.player == 2 else -1
+            else:
+                return 0
+        return node.V
+    
+    def _backpropagate(self, node, value):
+        while node is not None:
+            node.N += 1
+            node.W += value if node.player == 1 else -value
+            node.Q = node.W / node.N
+            node = node.parent
+    
+    def move(self, move, new_env):
+        if move in self.root.children:
+            self.root = self.root.children[move]
+        else:
+            self.root = NetworkNode(copy.deepcopy(new_env), 
+                                3 - self.root.player, 
+                                None, 
+                                self.network)
