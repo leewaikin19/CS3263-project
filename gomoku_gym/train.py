@@ -2,6 +2,7 @@ import gymnasium as gym
 import gomoku_gym 
 import torch
 import torch.optim as optim
+import torch.nn.functional as F
 import numpy as np
 from collections import deque
 import random
@@ -14,10 +15,13 @@ class SelfPlayTrainer:
         self.optimizer = optim.Adam(self.network.parameters(), lr=0.001)
         self.memory = deque(maxlen=10000)
         self.batch_size = 64
+        self.env = env = gym.make("gomoku_gym/GridWorld-v0")  
     
     def self_play(self, num_games=10):
-        for _ in range(num_games):
-            env = gym.make("gomoku_gym/GridWorld-v0")  
+        env = self.env
+        for i in range(num_games):
+            print("Game", i+1)
+            
             observation, info = env.reset()
             episode_over = False
             history = []
@@ -70,13 +74,13 @@ class SelfPlayTrainer:
         boards = torch.cat(boards)
         policies = torch.tensor(np.array(policies), dtype=torch.float32)
         values = torch.tensor(np.array(values), dtype=torch.float32).unsqueeze(1)
-        
+        #print(boards.shape, policies.shape, values.shape)
         # Forward pass
         self.optimizer.zero_grad()
         log_probs, value_preds = self.network(boards)
-        
+        #print(log_probs.shape, value_preds.shape)
         # Losses
-        policy_loss = -torch.sum(policies * log_probs) / self.batch_size
+        policy_loss = -torch.sum(policies * log_probs.reshape(16, 15, 15)) / self.batch_size
         value_loss = F.mse_loss(value_preds, values)
         total_loss = policy_loss + value_loss
         
@@ -91,8 +95,8 @@ if __name__ == "__main__":
     
     for iteration in range(100):
         print(f"Iteration {iteration + 1}")
-        trainer.self_play(num_games=10)
-        
+        trainer.self_play(num_games=2)
+        #print(len(trainer.memory))
         for _ in range(20):
             loss = trainer.train()
             print(f"Training loss: {loss:.4f}")

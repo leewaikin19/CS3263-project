@@ -70,7 +70,7 @@ class GridWorldEnv(gym.Env):
             reward = 0
 
 
-        if terminated:
+        if terminated and self.render_mode == "human":
             self._render_frame()
 
         reward = 0 
