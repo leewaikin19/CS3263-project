@@ -9,6 +9,7 @@ class GridWorldEnv(gym.Env):
         self.player = 1
         self._p1 = np.array([0] * 15, dtype=np.uint16)
         self._p2 = np.array([0] * 15, dtype=np.uint16)
+        self.history = []
         self.action_space = spaces.MultiDiscrete([15, 15])
         self.observation_space = spaces.Dict({"p1": spaces.Box(0, 2**15 - 1, shape=(15,), dtype=np.uint16), "p2": spaces.Box(0, 2**15 - 1, shape=(15,), dtype=np.uint16)})
 
@@ -28,8 +29,9 @@ class GridWorldEnv(gym.Env):
         super().reset(seed=seed)
 
         # Set up a 15 x 15 board
-        self._p1 = np.array([0] * 15, dtype=np.uint16)
-        self._p2 = np.array([0] * 15, dtype=np.uint16)
+        self.player = self.__old_player = 1
+        self._p1 = self.__old_p1 = np.array([0] * 15, dtype=np.uint16)
+        self._p2 = self.__old_p2 = np.array([0] * 15, dtype=np.uint16)
 
         observation = self._get_obs()
         info = self._get_info()
@@ -40,6 +42,9 @@ class GridWorldEnv(gym.Env):
         return observation, info
 
     def step(self, action):
+        # copy to __old first
+        self.history.append((self.player, action))
+
         # Ensure the action is valid
         valid = (((self._p1[action[1]] >> action[0]) & 1) == 0) and ((self._p2[action[1]] >> action[0]) & 1) == 0
 
@@ -82,6 +87,16 @@ class GridWorldEnv(gym.Env):
             self._render_frame()
         return observation, reward, terminated, False, info
     
+    def undo(self):
+        player, action = self.history.pop()
+        self.player = 3 - player
+        if player == 1:
+            self._p1[action[1]] = self._p1[action[1]] & ~(1 << action[0])
+        else:
+            self._p2[action[1]] = self._p2[action[1]] & ~(1 << action[0])
+
+
+
     def clone(self):
         new_env = GridWorldEnv()  # Create a new instance of the environment
         new_env.player = self.player

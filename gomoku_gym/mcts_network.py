@@ -8,8 +8,11 @@ from networks import GomokuNet, board_to_tensor
 count = 0
 savings = 0
 class NetworkNode:
-    def __init__(self, env, player, parent, network):
-        self.env = env
+    def __init__(self, env, _p1, _p2, valid_moves, player, parent, network):
+        self.env = env # Note: this env does NOT contain the correct state. Use _p1 and _p2
+        self._p1 = _p1
+        self._p2 = _p2
+        self.valid_moves = valid_moves
         self.player = player
         self.parent = parent
         self.network = network
@@ -26,7 +29,7 @@ class NetworkNode:
             self.P = torch.exp(log_probs).view(15, 15).numpy()
             self.V = value.item()
         
-        self.valid_moves = self.env.unwrapped._get_valid_moves()
+        #self.valid_moves = self.env.unwrapped._get_valid_moves()
         
     def UCB_score(self):
         if self.N == 0:
@@ -34,9 +37,9 @@ class NetworkNode:
         return self.Q + 1.0 * math.sqrt(math.log(self.parent.N) / (1 + self.N))
     
     def is_terminal(self):
-        p1_win = self.env.unwrapped._win(self.env.unwrapped._p1)
-        p2_win = self.env.unwrapped._win(self.env.unwrapped._p2)
-        no_moves = len(self.env.unwrapped._get_valid_moves()) == 0
+        p1_win = self.env.unwrapped._win(self._p1)
+        p2_win = self.env.unwrapped._win(self._p2)
+        no_moves = len(self.valid_moves) == 0
         return p1_win or p2_win or no_moves
     
     def best_child(self):
@@ -44,17 +47,26 @@ class NetworkNode:
     
     def most_visited_child(self):
         ## perhaps introduce randomness for max value child?
-        # lst = [child.N for child in self.children.values()]
-        # max_val = max(lst)  # Find the maximum value
-        # max_elements = [child for child in self.children.values() if child.N == max_val]  
-        # return random.choice(max_elements)
-        return max(self.children.values(), key=lambda child: child.N)
+        delta = 0.3
+
+        if random.random() < delta:
+            lst = [child.N for child in self.children.values()]
+            max_val = max(lst)  # Find the maximum value
+            max_elements = [child for child in self.children.values() if child.N == max_val]  
+            return random.choice(max_elements)
+        else: 
+            return max(self.children.values(), key=lambda child: child.N)
 
 class NetworkMCTS:
     def __init__(self, env, player, network):
         self.env = env
         self.network = network
-        self.root = NetworkNode(copy.deepcopy(env), player, None, network)
+        self.root = NetworkNode(
+            env, 
+            copy.deepcopy(env.unwrapped._p1),
+            copy.deepcopy(env.unwrapped._p2),
+            env.unwrapped._get_valid_moves(),
+            player, None, network)
 
     def search(self, num_simulations=800):
         self.count = 0
@@ -86,17 +98,23 @@ class NetworkMCTS:
         
         for move in valid_moves:
             x, y = move
-            new_env = node.env.unwrapped.clone()
-            self.count+=1
-            new_env.step(np.array(move))
-            child = NetworkNode(new_env, 3 - node.player, node, self.network)
+            #new_env = node.env.unwrapped.clone()
+            #self.count+=1
+            node.env.step(np.array(move))
+            child = NetworkNode(
+                node.env, 
+                copy.deepcopy(node.env.unwrapped._p1),
+                copy.deepcopy(node.env.unwrapped._p2),
+                node.env.unwrapped._get_valid_moves(),
+                3 - node.player, node, self.network)
+            node.env.unwrapped.undo()
             node.children[move] = child
     
     def _evaluate(self, node):
         if node.is_terminal():
-            if node.env.unwrapped._win(node.env.unwrapped._p1):
+            if self.env.unwrapped._win(node._p1):
                 return 1 if node.player == 1 else -1
-            elif node.env.unwrapped._win(node.env.unwrapped._p2):
+            elif self.env.unwrapped._win(node._p2):
                 return 1 if node.player == 2 else -1
             else:
                 return 0

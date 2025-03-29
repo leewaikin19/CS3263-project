@@ -19,7 +19,7 @@ class SelfPlayTrainer:
         self.env = gym.make("gomoku_gym/GridWorld-v0")  
         self.board_size = 15
 
-        #self.network.load_state_dict(torch.load("gomoku_net_5.pth"))
+        self.network.load_state_dict(torch.load("gomoku_net_26.pth"))
     
     def self_play(self, num_games=10):
         env = self.env
@@ -42,7 +42,7 @@ class SelfPlayTrainer:
                 for move, child in root_node.children.items():
                     x, y = move
                     policy[y][x] = child.N / total_visits
-                if total_visits > 0:
+                if total_visits > 0: # finally it makes interesting moves
                     print(total_visits)
                     env.unwrapped._render_frame()
                 # Store training data
@@ -51,7 +51,8 @@ class SelfPlayTrainer:
                 
                 # Make move
                 # In self_play method:
-                best_move = mcts.search(num_simulations=170)
+                # 180 seems to work the best on my com
+                best_move = mcts.search(num_simulations=180)
 
                 observation, reward, terminated, truncated, info = env.step(np.array(best_move, dtype=np.int32))
                 mcts.move(best_move, env)
@@ -89,7 +90,7 @@ class SelfPlayTrainer:
         policy_loss = -torch.sum(policies * log_probs.reshape(self.batch_size, self.board_size, self.board_size)) / self.batch_size
         value_loss = F.mse_loss(value_preds, values)
         total_loss = policy_loss + value_loss
-        if np.close(policy_loss, 0):
+        if round(policy_loss.item(), 4) == 0:
             print("Warn: policy_loss is 0")
         #print(policy_loss, value_loss)
         # Backward pass
@@ -103,11 +104,11 @@ if __name__ == "__main__":
     
     for iteration in range(100):
         print(f"Iteration {iteration + 1}")
-        trainer.self_play(num_games=2)
+        trainer.self_play(num_games=1)
         for _ in range(20):
             loss = trainer.train()
             print(f"Training loss: {loss:.4f}")
         
         # Save model periodically
-        if (iteration + 1) % 5 == 0:
+        if (iteration + 1) % 2 == 0:
             torch.save(trainer.network.state_dict(), f"gomoku_net_{iteration+1}.pth")
