@@ -8,6 +8,7 @@ from collections import deque
 import random
 from networks import GomokuNet, board_to_tensor
 from mcts_network import NetworkMCTS
+import gc
 
 class SelfPlayTrainer:
     def __init__(self):
@@ -15,10 +16,14 @@ class SelfPlayTrainer:
         self.optimizer = optim.Adam(self.network.parameters(), lr=0.001)
         self.memory = deque(maxlen=10000)
         self.batch_size = 64
-        self.env = env = gym.make("gomoku_gym/GridWorld-v0")  
+        self.env = gym.make("gomoku_gym/GridWorld-v0")  
+        self.board_size = 15
+
+        #self.network.load_state_dict(torch.load("gomoku_net_5.pth"))
     
     def self_play(self, num_games=10):
         env = self.env
+        gc.collect()
         for i in range(num_games):
             print("Game", i+1)
             
@@ -36,19 +41,22 @@ class SelfPlayTrainer:
                 
                 for move, child in root_node.children.items():
                     x, y = move
-                    policy[y, x] = child.N / total_visits
-                
+                    policy[y][x] = child.N / total_visits
+                if total_visits > 0:
+                    print(total_visits)
+                    env.unwrapped._render_frame()
                 # Store training data
                 board_tensor = board_to_tensor(env, root_node.player)
                 history.append((board_tensor, policy, root_node.player))
                 
                 # Make move
                 # In self_play method:
-                best_move = mcts.search(num_simulations=100)
+                best_move = mcts.search(num_simulations=170)
+
                 observation, reward, terminated, truncated, info = env.step(np.array(best_move, dtype=np.int32))
                 mcts.move(best_move, env)
                 episode_over = terminated or truncated
-            
+            env.unwrapped._render_frame()
             # Determine final reward
             if env.unwrapped._win(env.unwrapped._p1):
                 final_value = 1
@@ -74,16 +82,16 @@ class SelfPlayTrainer:
         boards = torch.cat(boards)
         policies = torch.tensor(np.array(policies), dtype=torch.float32)
         values = torch.tensor(np.array(values), dtype=torch.float32).unsqueeze(1)
-        #print(boards.shape, policies.shape, values.shape)
         # Forward pass
         self.optimizer.zero_grad()
         log_probs, value_preds = self.network(boards)
-        #print(log_probs.shape, value_preds.shape)
         # Losses
-        policy_loss = -torch.sum(policies * log_probs.reshape(16, 15, 15)) / self.batch_size
+        policy_loss = -torch.sum(policies * log_probs.reshape(self.batch_size, self.board_size, self.board_size)) / self.batch_size
         value_loss = F.mse_loss(value_preds, values)
         total_loss = policy_loss + value_loss
-        
+        if np.close(policy_loss, 0):
+            print("Warn: policy_loss is 0")
+        #print(policy_loss, value_loss)
         # Backward pass
         total_loss.backward()
         self.optimizer.step()
@@ -96,7 +104,6 @@ if __name__ == "__main__":
     for iteration in range(100):
         print(f"Iteration {iteration + 1}")
         trainer.self_play(num_games=2)
-        #print(len(trainer.memory))
         for _ in range(20):
             loss = trainer.train()
             print(f"Training loss: {loss:.4f}")

@@ -5,6 +5,8 @@ import numpy as np
 import torch
 from networks import GomokuNet, board_to_tensor
 
+count = 0
+savings = 0
 class NetworkNode:
     def __init__(self, env, player, parent, network):
         self.env = env
@@ -16,7 +18,7 @@ class NetworkNode:
         self.W = 0  # Total value
         self.Q = 0  # Mean value
         self.P = None  # Prior probabilities
-        
+
         # Get neural network predictions
         with torch.no_grad():
             board_tensor = board_to_tensor(env, player)
@@ -41,6 +43,11 @@ class NetworkNode:
         return max(self.children.values(), key=lambda child: child.UCB_score())
     
     def most_visited_child(self):
+        ## perhaps introduce randomness for max value child?
+        # lst = [child.N for child in self.children.values()]
+        # max_val = max(lst)  # Find the maximum value
+        # max_elements = [child for child in self.children.values() if child.N == max_val]  
+        # return random.choice(max_elements)
         return max(self.children.values(), key=lambda child: child.N)
 
 class NetworkMCTS:
@@ -48,14 +55,17 @@ class NetworkMCTS:
         self.env = env
         self.network = network
         self.root = NetworkNode(copy.deepcopy(env), player, None, network)
-    
+
     def search(self, num_simulations=800):
+        self.count = 0
         for _ in range(num_simulations):
             node = self._select()
             value = self._evaluate(node)
             self._backpropagate(node, value)
         
         best_child = self.root.most_visited_child()
+        #print("clones", self.count)
+
         # Return action as a tuple (x,y)
         return next(move for move, child in self.root.children.items() if child == best_child)
     
@@ -76,7 +86,8 @@ class NetworkMCTS:
         
         for move in valid_moves:
             x, y = move
-            new_env = copy.deepcopy(node.env)
+            new_env = node.env.unwrapped.clone()
+            self.count+=1
             new_env.step(np.array(move))
             child = NetworkNode(new_env, 3 - node.player, node, self.network)
             node.children[move] = child
@@ -102,7 +113,9 @@ class NetworkMCTS:
         if move in self.root.children:
             self.root = self.root.children[move]
         else:
-            self.root = NetworkNode(copy.deepcopy(new_env), 
+            new_child = NetworkNode(copy.deepcopy(new_env), 
                                 3 - self.root.player, 
                                 None, 
                                 self.network)
+            self.root.children[move] = new_child  # Add new child to the tree
+            self.root = new_child

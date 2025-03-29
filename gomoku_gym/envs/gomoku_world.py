@@ -1,7 +1,7 @@
 import gymnasium as gym
 from gymnasium import spaces
 import numpy as np
-
+import copy
 class GridWorldEnv(gym.Env):
     metadata = {"render_modes": ["human"]}
 
@@ -82,6 +82,13 @@ class GridWorldEnv(gym.Env):
             self._render_frame()
         return observation, reward, terminated, False, info
     
+    def clone(self):
+        new_env = GridWorldEnv()  # Create a new instance of the environment
+        new_env.player = self.player
+        new_env._p1 = copy.deepcopy(self._p1)
+        new_env._p2 = copy.deepcopy(self._p2)
+        return new_env
+
     def _win(self, arr):
         hor = arr & (arr << 1) & (arr << 2) & (arr << 3) & (arr << 4)
         if np.count_nonzero(np.unpackbits(hor.view(np.uint8))) > 0:
