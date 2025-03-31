@@ -56,7 +56,7 @@ class SelfPlayTrainer:
                 # Make move
                 # In self_play method:
                 # 180 seems to work the best on my com
-                best_move = mcts.search(num_simulations=200)
+                best_move = mcts.search_parallel(num_simulations=200)
 
                 observation, reward, terminated, truncated, info = env.step(np.array(best_move, dtype=np.int32))
                 mcts.move(best_move, env)

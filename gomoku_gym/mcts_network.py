@@ -5,6 +5,7 @@ import numpy as np
 import torch
 from networks import GomokuNet, board_to_tensor
 import concurrent.futures
+import threading
 
 count = 0
 savings = 0
@@ -21,6 +22,7 @@ class NetworkNode:
         self.W = 0  # Total value
         self.Q = 0  # Mean value
         self.P = None  # Prior probabilities
+        self.lock = threading.Lock()
 
         # Get neural network predictions
         with torch.no_grad():
@@ -46,23 +48,25 @@ class NetworkNode:
     def best_child(self):
         ## perhaps introduce randomness for max value child?
         delta = 0.8
-        if random.random() < delta:
-            lst = [child.UCB_score() for child in self.children.values()]
-            max_val = max(lst)  # Find the maximum value
-            max_elements = [child for child in self.children.values() if child.UCB_score() == max_val]  
-            return random.choice(max_elements)
-        return max(self.children.values(), key=lambda child: child.UCB_score())
+        with self.lock:
+            if random.random() < delta:
+                lst = [child.UCB_score() for child in self.children.values()]
+                max_val = max(lst)  # Find the maximum value
+                max_elements = [child for child in self.children.values() if child.UCB_score() == max_val]  
+                return random.choice(max_elements)
+            return max(self.children.values(), key=lambda child: child.UCB_score())
     
     def most_visited_child(self):
         ## perhaps introduce randomness for max value child?
         delta = 0.8
-        if random.random() < delta:
-            lst = [child.N for child in self.children.values()]
-            max_val = max(lst)  # Find the maximum value
-            max_elements = [child for child in self.children.values() if child.N == max_val]  
-            return random.choice(max_elements)
-        else: 
-            return max(self.children.values(), key=lambda child: child.N)
+        with self.lock:
+            if random.random() < delta:
+                lst = [child.N for child in self.children.values()]
+                max_val = max(lst)  # Find the maximum value
+                max_elements = [child for child in self.children.values() if child.N == max_val]  
+                return random.choice(max_elements)
+            else: 
+                return max(self.children.values(), key=lambda child: child.N)
 
 class NetworkMCTS:
     def __init__(self, env, player, network):
@@ -105,16 +109,16 @@ class NetworkMCTS:
         return next(move for move, child in self.root.children.items() if child == best_child)
     
     def search_parallel(self, num_simulations=800):
+        self.count = 0
         with concurrent.futures.ThreadPoolExecutor() as executor:
             # Run the simulations in parallel using map
-            futures = [executor.submit(self._run_simulation) for _ in range(num_simulations)]
-            
+            futures = [executor.submit(self._iter_parallel) for _ in range(num_simulations)]
+            print("Active threads:", threading.active_count())
             # Wait for all futures to complete
             for future in concurrent.futures.as_completed(futures):
                 # Get the result (this could be used for logging or debugging)
                 result = future.result()
 
-            
         best_child = self.root.most_visited_child()
 
         # Return action as a tuple (x,y)
@@ -178,7 +182,8 @@ class NetworkMCTS:
             # if np.any(node._p1 != orip1) or np.any(node._p2 != orip2):
             #     print("!!!!!!!")
             #     raise ValueError()
-            node.children[move] = child
+            with node.lock:
+                node.children[move] = child
     
     def _evaluate(self, node):
         # correct eval if terminal
@@ -214,7 +219,8 @@ class NetworkMCTS:
     
     def move(self, move, env):
         if move in self.root.children:
-            self.root = self.root.children[move]
+            with self.root.lock:
+                self.root = self.root.children[move]
             self.root._p1 = env.unwrapped._p1
             self.root._p2 = env.unwrapped._p2
         else:
