@@ -38,7 +38,7 @@ class SelfPlayTrainer:
                 root_node = mcts.root
                 policy = np.zeros((15, 15))
                 total_visits = sum(child.N for child in root_node.children.values())
-
+                print("Move", move_num)
                 #if move_num % 10 == 0:
                     #print("Move", move_num)
                     #env.unwrapped._render_frame()

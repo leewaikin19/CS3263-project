@@ -4,6 +4,7 @@ import random
 import numpy as np
 import torch
 from networks import GomokuNet, board_to_tensor
+import concurrent.futures
 
 count = 0
 savings = 0
@@ -103,6 +104,32 @@ class NetworkMCTS:
         # Return action as a tuple (x,y)
         return next(move for move, child in self.root.children.items() if child == best_child)
     
+    def search_parallel(self, num_simulations=800):
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            # Run the simulations in parallel using map
+            futures = [executor.submit(self._run_simulation) for _ in range(num_simulations)]
+            
+            # Wait for all futures to complete
+            for future in concurrent.futures.as_completed(futures):
+                # Get the result (this could be used for logging or debugging)
+                result = future.result()
+
+            
+        best_child = self.root.most_visited_child()
+
+        # Return action as a tuple (x,y)
+        return next(move for move, child in self.root.children.items() if child == best_child)
+
+    def _iter_parallel(self):
+        # node is either terminal, unexplored leaf, or child of explored leaf
+        node = self._select()
+        
+        # replace rollout with evaluation
+        value = self._evaluate(node)
+
+        # update values
+        self._backpropagate(node, value)
+
     def _select(self):
         current = self.root
         ## for convention, use leaf for MCTS graph leaf

@@ -10,15 +10,20 @@ class GomokuNet(nn.Module):
         
         # Shared convolutional layers
         self.conv1 = nn.Conv2d(3, 32, kernel_size=3, padding=1)
+        self.bn1 = nn.BatchNorm2d(32)
         self.conv2 = nn.Conv2d(32, 64, kernel_size=3, padding=1)
+        self.bn2 = nn.BatchNorm2d(64)
         self.conv3 = nn.Conv2d(64, 128, kernel_size=3, padding=1)
+        self.bn3 = nn.BatchNorm2d(128)
         
         # Policy head
         self.policy_conv = nn.Conv2d(128, 2, kernel_size=1)
+        self.policy_bn = nn.BatchNorm2d(2)
         self.policy_fc = nn.Linear(2 * board_size * board_size, board_size * board_size)
         
         # Value head
         self.value_conv = nn.Conv2d(128, 1, kernel_size=1)
+        self.value_bn = nn.BatchNorm2d(1)
         self.value_fc1 = nn.Linear(board_size * board_size, 64)
         self.value_fc2 = nn.Linear(64, 1)
 
@@ -43,17 +48,17 @@ class GomokuNet(nn.Module):
         # Channel 0: Player 1 stones
         # Channel 1: Player 2 stones
         # Channel 2: Current player indicator
-        x = F.relu(self.conv1(x))
-        x = F.relu(self.conv2(x))
-        x = F.relu(self.conv3(x))
+        x = F.relu(self.bn1(self.conv1(x)))
+        x = F.relu(self.bn2(self.conv2(x)))
+        x = F.relu(self.bn3(self.conv3(x)))
         
         # Policy head
-        p = F.relu(self.policy_conv(x))
+        p = F.relu(self.policy_bn(self.policy_conv(x)))
         p = p.view(-1, 2 * self.board_size * self.board_size)
         p = F.log_softmax(self.policy_fc(p), dim=1)
         
         # Value head
-        v = F.relu(self.value_conv(x))
+        v = F.relu(self.value_bn(self.value_conv(x)))
         v = v.view(-1, self.board_size * self.board_size)
         v = F.relu(self.value_fc1(v))
         v = torch.tanh(self.value_fc2(v))  # Output between -1 and 1
