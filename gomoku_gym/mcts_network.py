@@ -26,9 +26,10 @@ class NetworkNode:
 
         # Get neural network predictions
         with torch.no_grad():
-            board_tensor = board_to_tensor(env, player)
+            self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+            board_tensor = board_to_tensor(env, player).to(self.device)
             log_probs, value = network(board_tensor)
-            self.P = torch.exp(log_probs).view(15, 15).numpy()
+            self.P = torch.exp(log_probs).view(15, 15).cpu().numpy()
             self.V = value.item()
         
         self.valid_moves = self.env.unwrapped._get_valid_moves(_p1, _p2)
@@ -47,7 +48,7 @@ class NetworkNode:
     
     def best_child(self):
         ## perhaps introduce randomness for max value child?
-        delta = 0.8
+        delta = 0.3
         with self.lock:
             if random.random() < delta:
                 lst = [child.UCB_score() for child in self.children.values()]
@@ -58,7 +59,7 @@ class NetworkNode:
     
     def most_visited_child(self):
         ## perhaps introduce randomness for max value child?
-        delta = 0.8
+        delta = 0.3
         with self.lock:
             if random.random() < delta:
                 lst = [child.N for child in self.children.values()]
@@ -108,6 +109,7 @@ class NetworkMCTS:
         # Return action as a tuple (x,y)
         return next(move for move, child in self.root.children.items() if child == best_child)
     
+    # Note doesnt work, is much slower than non parallel version
     def search_parallel(self, num_simulations=800):
         self.count = 0
         with concurrent.futures.ThreadPoolExecutor() as executor:

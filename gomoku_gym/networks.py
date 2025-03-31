@@ -3,6 +3,22 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.nn.init as init
 
+class ResidualBlock(nn.Module):
+    def __init__(self, in_channels):
+        super(ResidualBlock, self).__init__()
+        self.conv1 = nn.Conv2d(in_channels, in_channels, kernel_size=3, padding=1)
+        self.bn1 = nn.BatchNorm2d(in_channels)
+        self.conv2 = nn.Conv2d(in_channels, in_channels, kernel_size=3, padding=1)
+        self.bn2 = nn.BatchNorm2d(in_channels)
+
+    def forward(self, x):
+        identity = x
+        out = F.relu(self.bn1(self.conv1(x)))
+        out = self.bn2(self.conv2(out))
+        out += identity
+        return F.relu(out)
+
+
 class GomokuNet(nn.Module):
     def __init__(self, board_size=15):
         super(GomokuNet, self).__init__()
@@ -16,6 +32,9 @@ class GomokuNet(nn.Module):
         self.conv3 = nn.Conv2d(64, 128, kernel_size=3, padding=1)
         self.bn3 = nn.BatchNorm2d(128)
         
+        #Residual blocks
+        self.residual_blocks = nn.ModuleList([ResidualBlock(128) for _ in range(1)])
+
         # Policy head
         self.policy_conv = nn.Conv2d(128, 2, kernel_size=1)
         self.policy_bn = nn.BatchNorm2d(2)
@@ -52,6 +71,9 @@ class GomokuNet(nn.Module):
         x = F.relu(self.bn2(self.conv2(x)))
         x = F.relu(self.bn3(self.conv3(x)))
         
+        for res_block in self.residual_blocks:
+            x = res_block(x)
+
         # Policy head
         p = F.relu(self.policy_bn(self.policy_conv(x)))
         p = p.view(-1, 2 * self.board_size * self.board_size)
