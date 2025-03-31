@@ -33,7 +33,7 @@ class GomokuNet(nn.Module):
         self.bn3 = nn.BatchNorm2d(128)
         
         #Residual blocks
-        self.residual_blocks = nn.ModuleList([ResidualBlock(128) for _ in range(1)])
+        self.residual_blocks = nn.ModuleList([ResidualBlock(128) for _ in range(0)])
 
         # Policy head
         self.policy_conv = nn.Conv2d(128, 2, kernel_size=1)

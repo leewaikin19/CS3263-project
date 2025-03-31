@@ -7,8 +7,7 @@ from networks import GomokuNet, board_to_tensor
 import concurrent.futures
 import threading
 
-count = 0
-savings = 0
+# Optimisation Idea: Duplicate states with hashmap
 class NetworkNode:
     def __init__(self, env, _p1, _p2, player, parent, network):
         self.env = env # Note: this env does NOT contain the correct state. Use _p1 and _p2
@@ -18,11 +17,13 @@ class NetworkNode:
         self.parent = parent
         self.network = network
         self.children = {}
+        self.best_child_node = None
+        self.most_visited_child_node = None
         self.N = 0
         self.W = 0  # Total value
         self.Q = 0  # Mean value
         self.P = None  # Prior probabilities
-        self.lock = threading.Lock()
+        #self.lock = threading.Lock()
 
         # Get neural network predictions
         with torch.no_grad():
@@ -34,11 +35,12 @@ class NetworkNode:
         
         self.valid_moves = self.env.unwrapped._get_valid_moves(_p1, _p2)
         
-    def UCB_score(self):
-        c = 1.0
+    def UCB_score(self, pol):
+        # include policy value
+        c = 0.8
         if self.N == 0:
             return float('inf')  # Always explore unvisited nodes
-        return self.Q + c * math.sqrt(math.log(self.parent.N) / (1 + self.N))
+        return self.Q + c * pol * math.sqrt(math.log(self.parent.N) / (1 + self.N))
     
     def is_terminal(self):
         p1_win = self.env.unwrapped._win(self._p1)
@@ -49,26 +51,27 @@ class NetworkNode:
     def best_child(self):
         ## perhaps introduce randomness for max value child?
         delta = 0.3
-        with self.lock:
-            if random.random() < delta:
-                lst = [child.UCB_score() for child in self.children.values()]
-                max_val = max(lst)  # Find the maximum value
-                max_elements = [child for child in self.children.values() if child.UCB_score() == max_val]  
-                return random.choice(max_elements)
-            return max(self.children.values(), key=lambda child: child.UCB_score())
+        #with self.lock:
+        if random.random() < delta:
+            lst = [child.UCB_score(self.P[move]) for move, child in self.children.items()]
+            max_val = max(lst)  # Find the maximum value
+            max_elements = [child for move, child in self.children.items() if child.UCB_score(self.P[move]) == max_val]  
+            return random.choice(max_elements)
+        
+        return max(self.children.items(), key=lambda args: args[1].UCB_score(self.P[args[0]]))[1]
     
     def most_visited_child(self):
         ## perhaps introduce randomness for max value child?
         delta = 0.3
-        with self.lock:
-            if random.random() < delta:
-                lst = [child.N for child in self.children.values()]
-                max_val = max(lst)  # Find the maximum value
-                max_elements = [child for child in self.children.values() if child.N == max_val]  
-                return random.choice(max_elements)
-            else: 
-                return max(self.children.values(), key=lambda child: child.N)
-
+        #with self.lock:
+        if random.random() < delta:
+            lst = [child.N for child in self.children.values()]
+            max_val = max(lst)  # Find the maximum value
+            max_elements = [child for child in self.children.values() if child.N == max_val]  
+            return random.choice(max_elements)
+        else: 
+            return max(self.children.values(), key=lambda child: child.N)
+        
 class NetworkMCTS:
     def __init__(self, env, player, network):
         self.env = env
@@ -92,19 +95,11 @@ class NetworkMCTS:
             self._backpropagate(node, value)
 
         # if self.count > 300:
-        #     print("deepcopy", self.count)
-        # print(len(self.root.children))
-        # if len(self.root.children) == 0:
-        #     print("smt is wrong")
-        #     print(self.root.is_terminal())
-        #     print(self.root.env.unwrapped._win(self.root._p1))
-        #     print(self.root.env.unwrapped._win(self.root._p2))
-        #     self.env.unwrapped._render_frame(self.root._p1, self.root._p2, self.root.player)
-        #     print(len(self.root.valid_moves))
+        print(self.count, "Nodes expanded")
         
-            
-        best_child = self.root.most_visited_child()
-        
+        best_child = self.root.most_visited_child() 
+        # bug? behaviour where 1 player takes 0.5s but other player takes 30+s  
+        # is because the best_child chosen from the previous move was not expanded at all from self._select?
 
         # Return action as a tuple (x,y)
         return next(move for move, child in self.root.children.items() if child == best_child)
@@ -160,8 +155,6 @@ class NetworkMCTS:
         for move in valid_moves:
             x, y = move
             self.count+=1
-            orip1 = node._p1
-            orip2 = node._p2
             
             if node.player == 1:
                 new_p1 = node.env.unwrapped.sim_step(copy.deepcopy(node._p1), node._p2, node.player, np.array(move))
@@ -177,15 +170,8 @@ class NetworkMCTS:
                     node._p1,
                     new_p2,
                     3 - node.player, node, self.network)
-            # if np.any(self.root._p1 != self.orip1):
-            #     print("PPPPPP33")
-            # if np.any(self.root._p2 != self.orip2):
-            #     print("QQQQQQQ33")
-            # if np.any(node._p1 != orip1) or np.any(node._p2 != orip2):
-            #     print("!!!!!!!")
-            #     raise ValueError()
-            with node.lock:
-                node.children[move] = child
+            #with node.lock:
+            node.children[move] = child
     
     def _evaluate(self, node):
         # correct eval if terminal
@@ -221,8 +207,8 @@ class NetworkMCTS:
     
     def move(self, move, env):
         if move in self.root.children:
-            with self.root.lock:
-                self.root = self.root.children[move]
+            #with self.root.lock:
+            self.root = self.root.children[move]
             self.root._p1 = env.unwrapped._p1
             self.root._p2 = env.unwrapped._p2
         else:

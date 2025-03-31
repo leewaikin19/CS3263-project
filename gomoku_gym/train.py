@@ -58,14 +58,14 @@ class SelfPlayTrainer:
                 
                 # Make move
                 # In self_play method:
-                # 180 seems to work the best on my com
-                best_move = mcts.search(num_simulations=200)
+                # Tune num_simulations so that Move 80 takes ~10 seconds max
+                best_move = mcts.search(num_simulations=180)
                 #best_move = mcts.search_parallel(num_simulations=200)
 
                 observation, reward, terminated, truncated, info = env.step(np.array(best_move, dtype=np.int32))
                 mcts.move(best_move, env)
                 episode_over = terminated or truncated
-                print("Move", move_num, f"in {time.time() - start:.2f} seconds")
+                print("Move", move_num, f"in {time.time() - start:.2f} seconds, {total_visits} total visits")
                 move_num += 1
             env.unwrapped._render_frame()
             # Determine final reward
@@ -122,5 +122,5 @@ if __name__ == "__main__":
             print(f"Training loss: {loss:.4f}")
         
         # Save model periodically
-        if (iteration + 1) % 5 == 0:
+        if (iteration + 1) % 1 == 0:
             torch.save(trainer.network.state_dict(), f"gomoku_net_{iteration+1}.pth")
