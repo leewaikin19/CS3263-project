@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import torch.nn.init as init
 
 class GomokuNet(nn.Module):
     def __init__(self, board_size=15):
@@ -20,7 +21,23 @@ class GomokuNet(nn.Module):
         self.value_conv = nn.Conv2d(128, 1, kernel_size=1)
         self.value_fc1 = nn.Linear(board_size * board_size, 64)
         self.value_fc2 = nn.Linear(64, 1)
+
+        # WARN DISABLE THIS IF LOADING SAVED WEIGHTS
+        self._initialize_weights()
+
+    def _initialize_weights(self):
+        # Initialize weights of each layer with a normal distribution
+        init.normal_(self.conv1.weight, mean=0, std=0.1) 
+        init.normal_(self.conv2.weight, mean=0, std=0.1)  
+        init.normal_(self.conv3.weight, mean=0, std=0.1)  
+
+        init.normal_(self.policy_conv.weight, mean=0, std=0.1) 
+        init.normal_(self.policy_fc.weight, mean=0, std=0.1)  
+        init.normal_(self.value_conv.weight, mean=0, std=0.1)  
+        init.normal_(self.value_fc1.weight, mean=0, std=0.1)  
+        init.normal_(self.value_fc2.weight, mean=0, std=0.1)  
         
+
     def forward(self, x):
         # Input shape: (batch_size, 3, board_size, board_size)
         # Channel 0: Player 1 stones

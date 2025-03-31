@@ -19,7 +19,7 @@ class SelfPlayTrainer:
         self.env = gym.make("gomoku_gym/GridWorld-v0")  
         self.board_size = 15
 
-        self.network.load_state_dict(torch.load("gomoku_net_26.pth"))
+        #self.network.load_state_dict(torch.load("gomoku_net_26.pth"))
     
     def self_play(self, num_games=10):
         env = self.env
@@ -32,19 +32,23 @@ class SelfPlayTrainer:
             history = []
             
             mcts = NetworkMCTS(env, 1, self.network)
-            
+            move_num = 1
             while not episode_over:
                 # Get MCTS policy
                 root_node = mcts.root
                 policy = np.zeros((15, 15))
                 total_visits = sum(child.N for child in root_node.children.values())
+
+                #if move_num % 10 == 0:
+                    #print("Move", move_num)
+                    #env.unwrapped._render_frame()
                 
                 for move, child in root_node.children.items():
                     x, y = move
                     policy[y][x] = child.N / total_visits
-                if total_visits > 0: # finally it makes interesting moves
-                    print(total_visits)
-                    env.unwrapped._render_frame()
+                # if total_visits > 0: # finally it makes interesting moves
+                #     print("Move", move_num, "Total visits", total_visits)
+                #     env.unwrapped._render_frame()
                 # Store training data
                 board_tensor = board_to_tensor(env, root_node.player)
                 history.append((board_tensor, policy, root_node.player))
@@ -52,16 +56,18 @@ class SelfPlayTrainer:
                 # Make move
                 # In self_play method:
                 # 180 seems to work the best on my com
-                best_move = mcts.search(num_simulations=180)
+                best_move = mcts.search(num_simulations=200)
 
                 observation, reward, terminated, truncated, info = env.step(np.array(best_move, dtype=np.int32))
                 mcts.move(best_move, env)
                 episode_over = terminated or truncated
+                move_num += 1
             env.unwrapped._render_frame()
             # Determine final reward
             if env.unwrapped._win(env.unwrapped._p1):
                 final_value = 1
             elif env.unwrapped._win(env.unwrapped._p2):
+                # define p2 as negative reward, meaning nn is trained for p1
                 final_value = -1
             else:
                 final_value = 0
@@ -75,7 +81,7 @@ class SelfPlayTrainer:
     
     def train(self):
         if len(self.memory) < self.batch_size:
-            return
+            return 0
         
         batch = random.sample(self.memory, self.batch_size)
         boards, policies, values = zip(*batch)
@@ -110,5 +116,5 @@ if __name__ == "__main__":
             print(f"Training loss: {loss:.4f}")
         
         # Save model periodically
-        if (iteration + 1) % 2 == 0:
+        if (iteration + 1) % 5 == 0:
             torch.save(trainer.network.state_dict(), f"gomoku_net_{iteration+1}.pth")

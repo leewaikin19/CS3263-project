@@ -10,6 +10,7 @@ class GridWorldEnv(gym.Env):
         self._p1 = np.array([0] * 15, dtype=np.uint16)
         self._p2 = np.array([0] * 15, dtype=np.uint16)
         self.history = []
+        self.moves = 0
         self.action_space = spaces.MultiDiscrete([15, 15])
         self.observation_space = spaces.Dict({"p1": spaces.Box(0, 2**15 - 1, shape=(15,), dtype=np.uint16), "p2": spaces.Box(0, 2**15 - 1, shape=(15,), dtype=np.uint16)})
 
@@ -29,9 +30,10 @@ class GridWorldEnv(gym.Env):
         super().reset(seed=seed)
 
         # Set up a 15 x 15 board
-        self.player = self.__old_player = 1
-        self._p1 = self.__old_p1 = np.array([0] * 15, dtype=np.uint16)
-        self._p2 = self.__old_p2 = np.array([0] * 15, dtype=np.uint16)
+        self.player = 1
+        self._p1 = np.array([0] * 15, dtype=np.uint16)
+        self._p2 = np.array([0] * 15, dtype=np.uint16)
+        self.history = []
 
         observation = self._get_obs()
         info = self._get_info()
@@ -41,20 +43,20 @@ class GridWorldEnv(gym.Env):
 
         return observation, info
 
-    def step(self, action):
-        # copy to __old first
-        self.history.append((self.player, action))
-
+    def step(self, action):    
         # Ensure the action is valid
         valid = (((self._p1[action[1]] >> action[0]) & 1) == 0) and ((self._p2[action[1]] >> action[0]) & 1) == 0
 
         if valid:
             # print(action, self.player)
+            self.history.append((self.player, action))
             if self.player == 1:
                 self._p1[action[1]] = self._p1[action[1]] | (1 << action[0])
             elif self.player == 2:
                 self._p2[action[1]] = self._p2[action[1]] | (1 << action[0])
             self.player = self.player % 2 + 1
+            self.moves += 1
+            
         
         num_bits = 0
         for i in range(15):
@@ -87,6 +89,18 @@ class GridWorldEnv(gym.Env):
             self._render_frame()
         return observation, reward, terminated, False, info
     
+    def sim_step(self, _p1, _p2, player, action):
+        valid = (((_p1[action[1]] >> action[0]) & 1) == 0) and ((_p2[action[1]] >> action[0]) & 1) == 0
+
+        if valid:
+            if player == 1:
+                _p1[action[1]] = _p1[action[1]] | (1 << action[0])
+                return _p1
+            elif player == 2:
+                _p2[action[1]] = _p2[action[1]] | (1 << action[0])
+                return _p2
+        raise ValueError()
+
     def undo(self):
         player, action = self.history.pop()
         self.player = 3 - player
@@ -121,19 +135,51 @@ class GridWorldEnv(gym.Env):
         if np.count_nonzero(np.unpackbits(neg_diag.view(np.uint8))) > 0:
             return True
         return False
+    
+    def almost_win(self, arr):
+        hor = arr & (arr << 1) & (arr << 2) & (arr << 3)
+        if np.count_nonzero(np.unpackbits(hor.view(np.uint8))) > 0:
+            return True
+         
+        vert = arr[3:] & arr[2:-1] & arr[1:-2] & arr[:-3] 
+        if np.count_nonzero(np.unpackbits(vert.view(np.uint8))) > 0:
+            return True
         
-    def _render_frame(self):
-        print("   Player", str(self.player) + "'s turn", "                Idx")
+        pos_diag = arr[3:] & (arr[2:-1] << 1) & (arr[1:-2] << 2) & (arr[:-3] << 3)
+        if np.count_nonzero(np.unpackbits(pos_diag.view(np.uint8))) > 0:
+            return True
+        
+        neg_diag = arr[:-3] & (arr[1:-2] << 1) & (arr[2:-1] << 2) & (arr[3:] << 3)
+        if np.count_nonzero(np.unpackbits(neg_diag.view(np.uint8))) > 0:
+            return True
+        return False
+
+    def _render_frame(self, _p1=None, _p2=None, player=None):
+        if np.all(_p1 == None) or np.all(_p2 == None):
+            _p1 = self._p1
+            _p2 = self._p2
+            player = self.player
+        if self._win(_p1):
+            print("   Player 1 won!                  Idx")
+        elif self._win(_p2):
+            print("   Player 2 won!                  Idx")
+        elif self.moves == 225:
+            print("   Draw!                          Idx")
+        else:
+            print("   Player", str(player) + "'s turn", "                Idx")
         for row in range(15):
-            combined = np.array([int(char) for char in format(self._p1[14-row], "016b")])[1:] + np.array([int(char) for char in format(self._p2[14-row], "016b")])[1:]*2
+            combined = np.array([int(char) for char in format(_p1[14-row], "016b")])[1:] + np.array([int(char) for char in format(_p2[14-row], "016b")])[1:]*2
             print("  ", combined, 14-row)
         print("Idx 1 1 1 1 1 9 8 7 6 5 4 3 2 1 0")
         print("    4 3 2 1 0")
 
-    def _get_valid_moves(env):
+    def _get_valid_moves(self, _p1=None, _p2=None):
+        if np.all(_p1 == None) or np.all(_p2 == None):
+            _p1 = self._p1
+            _p2 = self._p2
         valid_moves = []
         for row in range(15):
             for col in range(15):
-                if (((env._p1[row] >> col) & 1) == 0) and (((env._p2[row] >> col) & 1) == 0):
+                if (((_p1[row] >> col) & 1) == 0) and (((_p2[row] >> col) & 1) == 0):
                     valid_moves.append((col, row))
         return valid_moves
