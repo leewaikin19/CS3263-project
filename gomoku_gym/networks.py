@@ -1,3 +1,4 @@
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -93,16 +94,9 @@ def board_to_tensor(env, current_player):
     p2 = env.unwrapped._p2
     
     # Create binary boards
-    board_p1 = torch.zeros((15, 15))
-    board_p2 = torch.zeros((15, 15))
+    board_p1 = torch.tensor(np.unpackbits(p1[:, np.newaxis].byteswap().view(np.uint8), axis=1)[:, 1:]).to(torch.get_default_dtype())
+    board_p2 = torch.tensor(np.unpackbits(p2[:, np.newaxis].byteswap().view(np.uint8), axis=1)[:, 1:]).to(torch.get_default_dtype())
     player_ind = torch.ones((15, 15)) * (1 if current_player == 1 else -1)
-    
-    for y in range(15):
-        for x in range(15):
-            if (p1[y] >> x) & 1:
-                board_p1[y, x] = 1
-            if (p2[y] >> x) & 1:
-                board_p2[y, x] = 1
-    
+
     # Stack into 3-channel tensor
     return torch.stack([board_p1, board_p2, player_ind], dim=0).unsqueeze(0).float()

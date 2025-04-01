@@ -22,7 +22,7 @@ class SelfPlayTrainer:
         self.board_size = 15
 
         #self.network.load_state_dict(torch.load("gomoku_net_26.pth"))
-    
+
     def self_play(self, num_games=10):
         env = self.env
         gc.collect()
@@ -58,7 +58,7 @@ class SelfPlayTrainer:
                 
                 # Make move
                 # In self_play method:
-                # Tune num_simulations so that Move 80 takes ~10 seconds max
+                # Tune num_simulations so that moves 70-80 takes ~10 seconds
                 best_move = mcts.search(num_simulations=180)
                 #best_move = mcts.search_parallel(num_simulations=200)
 
@@ -114,7 +114,7 @@ if __name__ == "__main__":
     trainer = SelfPlayTrainer()
     print("Cuda:", torch.cuda.is_available())
 
-    for iteration in range(100):
+    for iteration in range(1):
         print(f"Iteration {iteration + 1}")
         trainer.self_play(num_games=2)
         for _ in range(20):

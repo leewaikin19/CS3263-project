@@ -81,6 +81,8 @@ class NetworkMCTS:
             copy.deepcopy(env.unwrapped._p1),
             copy.deepcopy(env.unwrapped._p2),
             player, None, network)
+        #self.nodes = {}
+        #self.nodes[env.unwrapped.hash(env.unwrapped._p1, env.unwrapped._p2, player)] = self.root
 
     def search(self, num_simulations=800):
         self.count = 0
@@ -154,22 +156,33 @@ class NetworkMCTS:
         total_p = sum(node.P[y, x] for (x, y) in valid_moves)
         for move in valid_moves:
             x, y = move
-            self.count+=1
             
             if node.player == 1:
                 new_p1 = node.env.unwrapped.sim_step(copy.deepcopy(node._p1), node._p2, node.player, np.array(move))
+                # hsh = node.env.unwrapped.hash(new_p1, node._p2, 3 - node.player)
+                # if hsh in self.nodes:
+                #     child = self.nodes[hsh]
+                # else: 
+                self.count+=1
                 child = NetworkNode(
                     node.env, 
                     new_p1,
                     node._p2,
                     3 - node.player, node, self.network)
+                #self.nodes[hsh] = child
             else:
                 new_p2 = node.env.unwrapped.sim_step(node._p1, copy.deepcopy(node._p2), node.player, np.array(move))
+                # hsh = node.env.unwrapped.hash(node._p1, new_p2, 3 - node.player)
+                # if hsh in self.nodes:
+                #     child = self.nodes[hsh]
+                # else: 
+                self.count+=1
                 child = NetworkNode(
                     node.env, 
                     node._p1,
                     new_p2,
                     3 - node.player, node, self.network)
+                #self.nodes[hsh] = child
             #with node.lock:
             node.children[move] = child
     

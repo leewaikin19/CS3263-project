@@ -2,6 +2,8 @@ import gymnasium as gym
 from gymnasium import spaces
 import numpy as np
 import copy
+import hashlib
+
 class GridWorldEnv(gym.Env):
     metadata = {"render_modes": ["human"]}
 
@@ -44,6 +46,9 @@ class GridWorldEnv(gym.Env):
         return observation, info
 
     def step(self, action):    
+        # To prevent array copying, we change action[0] -> 14-action[0]
+        action = (14-action[0], action[1])
+
         # Ensure the action is valid
         valid = (((self._p1[action[1]] >> action[0]) & 1) == 0) and ((self._p2[action[1]] >> action[0]) & 1) == 0
 
@@ -90,6 +95,9 @@ class GridWorldEnv(gym.Env):
         return observation, reward, terminated, False, info
     
     def sim_step(self, _p1, _p2, player, action):
+        # To prevent array copying, we change action[0] -> 14-action[0]
+        action = (14-action[0], action[1])
+
         valid = (((_p1[action[1]] >> action[0]) & 1) == 0) and ((_p2[action[1]] >> action[0]) & 1) == 0
 
         if valid:
@@ -102,7 +110,7 @@ class GridWorldEnv(gym.Env):
         raise ValueError()
 
     def undo(self):
-        player, action = self.history.pop()
+        player, action = self.history.pop() # The action here is correct, no need to flip
         self.player = 3 - player
         if player == 1:
             self._p1[action[1]] = self._p1[action[1]] & ~(1 << action[0])
@@ -167,11 +175,12 @@ class GridWorldEnv(gym.Env):
             print("   Draw!                          Idx")
         else:
             print("   Player", str(player) + "'s turn", "                Idx")
+        combined = np.unpackbits(_p1[:, np.newaxis].byteswap().view(np.uint8), axis=1)[:, 1:] + np.unpackbits(_p2[:, np.newaxis].byteswap().view(np.uint8), axis=1)[:, 1:]
         for row in range(15):
-            combined = np.array([int(char) for char in format(_p1[14-row], "016b")])[1:] + np.array([int(char) for char in format(_p2[14-row], "016b")])[1:]*2
-            print("  ", combined, 14-row)
-        print("Idx 1 1 1 1 1 9 8 7 6 5 4 3 2 1 0")
-        print("    4 3 2 1 0")
+            #combined = np.array([int(char) for char in format(_p1[14-row], "016b")])[1:] + np.array([int(char) for char in format(_p2[14-row], "016b")])[1:]*2
+            print("  ", combined[row], row)
+        print("Idx 0 1 2 3 4 5 6 7 8 9 1 1 1 1 1")
+        print("                        0 1 2 3 4")
 
     def _get_valid_moves(self, _p1=None, _p2=None):
         if np.all(_p1 == None) or np.all(_p2 == None):
@@ -181,5 +190,19 @@ class GridWorldEnv(gym.Env):
         for row in range(15):
             for col in range(15):
                 if (((_p1[row] >> col) & 1) == 0) and (((_p2[row] >> col) & 1) == 0):
-                    valid_moves.append((col, row))
+                    valid_moves.append((14 - col, row))
         return valid_moves
+    
+    def hash(self, _p1, _p2, player):
+        if np.all(_p1 == None) or np.all(_p2 == None):
+            _p1 = self._p1
+            _p2 = self._p2
+            player = self.player
+
+        hash_obj = hashlib.sha512()
+        hash_obj.update(_p1.tobytes())
+        hash_obj.update(_p2.tobytes())
+        hash_obj.update(player.to_bytes(8, byteorder='little'))
+
+        return hash_obj.hexdigest()
+ 
