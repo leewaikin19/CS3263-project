@@ -154,11 +154,12 @@ class NetworkMCTS:
     def _expand(self, node):
         valid_moves = node.valid_moves
         total_p = sum(node.P[y, x] for (x, y) in valid_moves)
-        for move in valid_moves:
-            x, y = move
+        for m in valid_moves:
+            x, y = m
+            move = (x, y)
             
             if node.player == 1:
-                new_p1 = node.env.unwrapped.sim_step(copy.deepcopy(node._p1), node._p2, node.player, np.array(move))
+                new_p1 = node.env.unwrapped.sim_step(copy.deepcopy(node._p1), node._p2, node.player, m)
                 # hsh = node.env.unwrapped.hash(new_p1, node._p2, 3 - node.player)
                 # if hsh in self.nodes:
                 #     child = self.nodes[hsh]
@@ -171,7 +172,7 @@ class NetworkMCTS:
                     3 - node.player, node, self.network)
                 #self.nodes[hsh] = child
             else:
-                new_p2 = node.env.unwrapped.sim_step(node._p1, copy.deepcopy(node._p2), node.player, np.array(move))
+                new_p2 = node.env.unwrapped.sim_step(node._p1, copy.deepcopy(node._p2), node.player, m)
                 # hsh = node.env.unwrapped.hash(node._p1, new_p2, 3 - node.player)
                 # if hsh in self.nodes:
                 #     child = self.nodes[hsh]

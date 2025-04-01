@@ -79,7 +79,7 @@ class SelfPlayTrainer:
             
             # Add to memory with appropriate value targets
             for (board_tensor, policy, player) in history:
-                value_target = final_value if player == 1 else -final_value
+                value_target = final_value # if player == 1 else -final_value
                 self.memory.append((board_tensor, policy, value_target))
             
             env.close()
@@ -112,7 +112,7 @@ class SelfPlayTrainer:
 
 if __name__ == "__main__":
     trainer = SelfPlayTrainer()
-    print("Cuda:", torch.cuda.is_available())
+    print("Cuda:", next(trainer.network.parameters()).is_cuda)
 
     for iteration in range(1):
         print(f"Iteration {iteration + 1}")
