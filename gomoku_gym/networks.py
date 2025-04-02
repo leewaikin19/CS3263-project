@@ -24,7 +24,7 @@ class GomokuNet(nn.Module):
     def __init__(self, board_size=15):
         super(GomokuNet, self).__init__()
         self.board_size = board_size
-        
+
         # Shared convolutional layers
         self.conv1 = nn.Conv2d(3, 32, kernel_size=3, padding=1)
         self.bn1 = nn.BatchNorm2d(32)
@@ -32,7 +32,7 @@ class GomokuNet(nn.Module):
         self.bn2 = nn.BatchNorm2d(64)
         self.conv3 = nn.Conv2d(64, 128, kernel_size=3, padding=1)
         self.bn3 = nn.BatchNorm2d(128)
-        
+
         #Residual blocks
         self.residual_blocks = nn.ModuleList([ResidualBlock(128) for _ in range(0)])
 
@@ -40,28 +40,12 @@ class GomokuNet(nn.Module):
         self.policy_conv = nn.Conv2d(128, 2, kernel_size=1)
         self.policy_bn = nn.BatchNorm2d(2)
         self.policy_fc = nn.Linear(2 * board_size * board_size, board_size * board_size)
-        
+
         # Value head
         self.value_conv = nn.Conv2d(128, 1, kernel_size=1)
         self.value_bn = nn.BatchNorm2d(1)
         self.value_fc1 = nn.Linear(board_size * board_size, 64)
         self.value_fc2 = nn.Linear(64, 1)
-
-        # WARN DISABLE THIS IF LOADING SAVED WEIGHTS
-        self._initialize_weights()
-
-    def _initialize_weights(self):
-        # Initialize weights of each layer with a normal distribution
-        init.normal_(self.conv1.weight, mean=0, std=0.1) 
-        init.normal_(self.conv2.weight, mean=0, std=0.1)  
-        init.normal_(self.conv3.weight, mean=0, std=0.1)  
-
-        init.normal_(self.policy_conv.weight, mean=0, std=0.1) 
-        init.normal_(self.policy_fc.weight, mean=0, std=0.1)  
-        init.normal_(self.value_conv.weight, mean=0, std=0.1)  
-        init.normal_(self.value_fc1.weight, mean=0, std=0.1)  
-        init.normal_(self.value_fc2.weight, mean=0, std=0.1)  
-        
 
     def forward(self, x):
         # Input shape: (batch_size, 3, board_size, board_size)
@@ -71,7 +55,7 @@ class GomokuNet(nn.Module):
         x = F.relu(self.bn1(self.conv1(x)))
         x = F.relu(self.bn2(self.conv2(x)))
         x = F.relu(self.bn3(self.conv3(x)))
-        
+
         for res_block in self.residual_blocks:
             x = res_block(x)
 
@@ -79,24 +63,21 @@ class GomokuNet(nn.Module):
         p = F.relu(self.policy_bn(self.policy_conv(x)))
         p = p.view(-1, 2 * self.board_size * self.board_size)
         p = F.log_softmax(self.policy_fc(p), dim=1)
-        
+
         # Value head
         v = F.relu(self.value_bn(self.value_conv(x)))
         v = v.view(-1, self.board_size * self.board_size)
         v = F.relu(self.value_fc1(v))
         v = torch.tanh(self.value_fc2(v))  # Output between -1 and 1
-        
+
         return p, v
 
-def board_to_tensor(env, current_player):
-    """Convert gymnasium env state to neural network input tensor"""
-    p1 = env.unwrapped._p1
-    p2 = env.unwrapped._p2
-    
-    # Create binary boards
-    board_p1 = torch.tensor(np.unpackbits(p1[:, np.newaxis].byteswap().view(np.uint8), axis=1)[:, 1:]).to(torch.get_default_dtype())
-    board_p2 = torch.tensor(np.unpackbits(p2[:, np.newaxis].byteswap().view(np.uint8), axis=1)[:, 1:]).to(torch.get_default_dtype())
-    player_ind = torch.ones((15, 15)) * (1 if current_player == 1 else -1)
+    def board_to_tensor(self, p1, p2, current_player):
+        """Convert gymnasium env state to neural network input tensor"""
+        # Create binary boards
+        board_p1 = torch.tensor(np.unpackbits(p1[:, np.newaxis].byteswap().view(np.uint8), axis=1)[:, 16-self.board_size:]).to(torch.get_default_dtype())
+        board_p2 = torch.tensor(np.unpackbits(p2[:, np.newaxis].byteswap().view(np.uint8), axis=1)[:, 16-self.board_size:]).to(torch.get_default_dtype())
+        player_ind = torch.ones((self.board_size, self.board_size)) * (1 if current_player == 1 else -1)
 
-    # Stack into 3-channel tensor
-    return torch.stack([board_p1, board_p2, player_ind], dim=0).unsqueeze(0).float()
+        # Stack into 3-channel tensor
+        return torch.stack([board_p1, board_p2, player_ind], dim=0).unsqueeze(0).float()
