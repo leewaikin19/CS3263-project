@@ -9,7 +9,7 @@ class GridWorldEnv(gym.Env):
     metadata = {"render_modes": ["human"]}
 
     def __init__(self, render_mode=None):
-        self.board_size = 9
+        self.board_size = 4
         self.player = 1
         self._p1 = np.array([0] * self.board_size, dtype=np.uint16)
         self._p2 = np.array([0] * self.board_size, dtype=np.uint16)
@@ -119,8 +119,6 @@ class GridWorldEnv(gym.Env):
         else:
             self._p2[action[1]] = self._p2[action[1]] & ~(1 << action[0])
 
-
-
     def clone(self):
         new_env = GridWorldEnv()  # Create a new instance of the environment
         new_env.player = self.player
@@ -128,41 +126,79 @@ class GridWorldEnv(gym.Env):
         new_env._p2 = copy.deepcopy(self._p2)
         return new_env
 
+    ### 3-in-a-row to win
     def _win(self, arr):
-        hor = arr & (arr << 1) & (arr << 2) & (arr << 3) & (arr << 4)
+        hor = arr & (arr << 1) & (arr << 2) 
         if np.count_nonzero(np.unpackbits(hor.view(np.uint8))) > 0:
             return True
 
-        vert = arr[4:] & arr[3:-1] & arr[2:-2] & arr[1:-3] & arr[:-4]
+        vert = arr[2:] & arr[1:-1] & arr[:-2] 
         if np.count_nonzero(np.unpackbits(vert.view(np.uint8))) > 0:
             return True
 
-        pos_diag = arr[4:] & (arr[3:-1] << 1) & (arr[2:-2] << 2) & (arr[1:-3] << 3) & (arr[:-4] << 4)
+        pos_diag = arr[2:] & (arr[1:-1] << 1) & (arr[:-2] << 2) 
         if np.count_nonzero(np.unpackbits(pos_diag.view(np.uint8))) > 0:
             return True
 
-        neg_diag = arr[:-4] & (arr[1:-3] << 1) & (arr[2:-2] << 2) & (arr[3:-1] << 3) & (arr[4:] << 4)
+        neg_diag = arr[:-2] & (arr[1:-1] << 1) & (arr[2:] << 2) 
         if np.count_nonzero(np.unpackbits(neg_diag.view(np.uint8))) > 0:
             return True
         return False
 
     def almost_win(self, arr):
-        hor = arr & (arr << 1) & (arr << 2) & (arr << 3)
+        hor = arr & (arr << 1) 
         if np.count_nonzero(np.unpackbits(hor.view(np.uint8))) > 0:
             return True
 
-        vert = arr[3:] & arr[2:-1] & arr[1:-2] & arr[:-3]
+        vert = arr[1:] & arr[:-1] 
         if np.count_nonzero(np.unpackbits(vert.view(np.uint8))) > 0:
             return True
 
-        pos_diag = arr[3:] & (arr[2:-1] << 1) & (arr[1:-2] << 2) & (arr[:-3] << 3)
+        pos_diag = arr[1:] & (arr[:-1] << 1) 
         if np.count_nonzero(np.unpackbits(pos_diag.view(np.uint8))) > 0:
             return True
 
-        neg_diag = arr[:-3] & (arr[1:-2] << 1) & (arr[2:-1] << 2) & (arr[3:] << 3)
+        neg_diag = arr[:-1] & (arr[1:] << 1) 
         if np.count_nonzero(np.unpackbits(neg_diag.view(np.uint8))) > 0:
             return True
         return False
+    
+    ### 5-in-a-row to win
+    # def _win(self, arr):
+    #     hor = arr & (arr << 1) & (arr << 2) & (arr << 3) & (arr << 4)
+    #     if np.count_nonzero(np.unpackbits(hor.view(np.uint8))) > 0:
+    #         return True
+
+    #     vert = arr[4:] & arr[3:-1] & arr[2:-2] & arr[1:-3] & arr[:-4]
+    #     if np.count_nonzero(np.unpackbits(vert.view(np.uint8))) > 0:
+    #         return True
+
+    #     pos_diag = arr[4:] & (arr[3:-1] << 1) & (arr[2:-2] << 2) & (arr[1:-3] << 3) & (arr[:-4] << 4)
+    #     if np.count_nonzero(np.unpackbits(pos_diag.view(np.uint8))) > 0:
+    #         return True
+
+    #     neg_diag = arr[:-4] & (arr[1:-3] << 1) & (arr[2:-2] << 2) & (arr[3:-1] << 3) & (arr[4:] << 4)
+    #     if np.count_nonzero(np.unpackbits(neg_diag.view(np.uint8))) > 0:
+    #         return True
+    #     return False
+
+    # def almost_win(self, arr):
+    #     hor = arr & (arr << 1) & (arr << 2) & (arr << 3)
+    #     if np.count_nonzero(np.unpackbits(hor.view(np.uint8))) > 0:
+    #         return True
+
+    #     vert = arr[3:] & arr[2:-1] & arr[1:-2] & arr[:-3]
+    #     if np.count_nonzero(np.unpackbits(vert.view(np.uint8))) > 0:
+    #         return True
+
+    #     pos_diag = arr[3:] & (arr[2:-1] << 1) & (arr[1:-2] << 2) & (arr[:-3] << 3)
+    #     if np.count_nonzero(np.unpackbits(pos_diag.view(np.uint8))) > 0:
+    #         return True
+
+    #     neg_diag = arr[:-3] & (arr[1:-2] << 1) & (arr[2:-1] << 2) & (arr[3:] << 3)
+    #     if np.count_nonzero(np.unpackbits(neg_diag.view(np.uint8))) > 0:
+    #         return True
+    #     return False
 
     def _render_frame(self, _p1=None, _p2=None, player=None):
         if np.all(_p1 == None) or np.all(_p2 == None):
@@ -170,11 +206,11 @@ class GridWorldEnv(gym.Env):
             _p2 = self._p2
             player = self.player
         if self._win(_p1):
-            print("   Player 1 won!                  Idx")
+            print("   Player 1 won!" + " " * (self.board_size*2 - 12) + "Idx")
         elif self._win(_p2):
-            print("   Player 2 won!                  Idx")
-        elif self.moves == 225:
-            print("   Draw!                          Idx")
+            print("   Player 2 won!" + " " * (self.board_size*2 - 12) + "Idx")
+        elif self.moves == self.board_size * self.board_size:
+            print("   Draw!" + " " * (self.board_size*2 - 4) + "Idx")
         else:
             print("   Player", str(player) + "'s turn", "                Idx")
         combined = np.unpackbits(_p1[:, np.newaxis].byteswap().view(np.uint8), axis=1)[:, 16-self.board_size:] + np.unpackbits(_p2[:, np.newaxis].byteswap().view(np.uint8), axis=1)[:, 16-self.board_size:] * 2
