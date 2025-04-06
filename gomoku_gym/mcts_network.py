@@ -3,8 +3,10 @@ import copy
 import random
 import numpy as np
 import torch
-from networks import GomokuNet
+from gomoku_gym.networks import GomokuNet
 import torch.multiprocessing as mp
+from itertools import islice
+
 
 class NetworkNode:
     def __init__(self, env, _p1, _p2, player, parent, P, V):
@@ -109,9 +111,31 @@ class NetworkMCTS:
 
         # Return action as a tuple (x,y)
         return next(move for move, child in self.root.children.items() if child == best_child)
-
-    # Note doesnt work, is much slower than non parallel version
+        
     def search_parallel(self, num_simulations=800):
+        self.count = 0
+        # self.hashsavings = 0
+        # if num_simulations < moves remaining (225), will not reach terminal
+        for _ in range(num_simulations):
+            # node is either terminal, unexplored leaf, or child of explored leaf
+            node = self._select_parallel_new()
+
+            # replace rollout with evaluation
+            value = self._evaluate(node)
+            # update values
+            self._backpropagate(node, value)
+
+        # if self.count > 300:
+        #print(self.count, "Nodes expanded", "     Hash savings", self.assertt, self.hashsavings, len(self.P))
+        print(self.count, "Nodes expanded")
+        best_child = self.root.most_visited_child()
+        # bug? behaviour where 1 player takes 0.5s but other player takes 30+s
+        # is because the best_child chosen from the previous move was not expanded at all from self._select?
+
+        # Return action as a tuple (x,y)
+        return next(move for move, child in self.root.children.items() if child == best_child)
+    
+    def search_parallel_old(self, num_simulations=800):
         self.count = 0
         for _ in range(num_simulations):
 
@@ -180,7 +204,22 @@ class NetworkMCTS:
 
         # returns terminal, unexplored leaf, or child of explored leaf
         return current
+    def _select_parallel_new(self):
+        current = self.root
+        ## for convention, use leaf for MCTS graph leaf
+        ## use terminal to mean game state ended
 
+        # propagates to leaf or terminal with best_child
+        while current.children:
+            current = current.best_child()
+
+        # if an explored leaf node, return one of its children
+        if not current.is_terminal() and current.N > 0:
+            self.count += self._expand_parallel(current)
+            current = current.best_child()
+
+        # returns terminal, unexplored leaf, or child of explored leaf
+        return current
     # Create and add children nodes
     def _expand(self, node):
         count = 0
@@ -192,52 +231,76 @@ class NetworkMCTS:
 
             if node.player == 1:
                 new_p1 = node.env.unwrapped.sim_step(copy.deepcopy(node._p1), node._p2, node.player, m)
-                #hsh = node.env.unwrapped.hash(new_p1, node._p2, 3 - node.player)
-                #if hsh in self.P:
-                #    P = self.P[hsh]
-                #    V = self.V[hsh]
-                #    self.hashsavings += 1
-                #else:
-                # Get neural network predictions
                 with torch.no_grad():
                     board_tensor = self.network.board_to_tensor(new_p1, node._p2, 3 - node.player).to(self.device)
                     log_probs, value = self.network(board_tensor)
                     P = torch.exp(log_probs).view(self.board_size, self.board_size).cpu().numpy()
                     V = value.item()
-                    #self.P[hsh] = P
-                    #self.V[hsh] = V
                 count+=1
                 child = NetworkNode(
                     node.env,
                     new_p1,
                     node._p2,
                     3 - node.player, node, P, V)
-                #self.nodes[hsh] = child
             else:
                 new_p2 = node.env.unwrapped.sim_step(node._p1, copy.deepcopy(node._p2), node.player, m)
-                #hsh = node.env.unwrapped.hash(node._p1, new_p2, 3 - node.player)
-                #if hsh in self.P:
-                #    P = self.P[hsh]
-                #    V = self.V[hsh]
-                #    self.hashsavings += 1
-                #else:
                 # Get neural network predictions
                 with torch.no_grad():
                     board_tensor = self.network.board_to_tensor(node._p1, new_p2, 3 - node.player).to(self.device)
                     log_probs, value = self.network(board_tensor)
                     P = torch.exp(log_probs).view(self.board_size, self.board_size).cpu().numpy()
                     V = value.item()
-                #self.P[hsh] = P
-                #self.V[hsh] = V
                 count+=1
                 child = NetworkNode(
                     node.env,
                     node._p1,
                     new_p2,
                     3 - node.player, node, P, V)
-                #self.nodes[hsh] = child
             node.children[move] = child
         return count
+
+    # Create and add children nodes
+    def _expand_parallel(self, node):
+        count = 0
+        valid_moves = node.valid_moves
+        total_p = sum(node.P[y, x] for (x, y) in valid_moves)
+        to_run = []
+        for m in valid_moves:
+            x, y = m
+            move = (x, y)
+
+            if node.player == 1:
+                new_p1 = node.env.unwrapped.sim_step(copy.deepcopy(node._p1), node._p2, node.player, m)
+                board_tensor = self.network.board_to_tensor(new_p1, node._p2, 3 - node.player).to(self.device)
+                to_run.append((move, new_p1, node._p2, board_tensor))
+            else:
+                new_p2 = node.env.unwrapped.sim_step(node._p1, copy.deepcopy(node._p2), node.player, m)
+                board_tensor = self.network.board_to_tensor(node._p1, new_p2, 3 - node.player).to(self.device)
+                to_run.append((move, node._p1, new_p2, board_tensor))
+
+        results = self.cuda_pool.map(self._expand_torch, to_run)
+
+        for move, _p1, _p2, log_probs, value in results:
+            count+=1
+            P = torch.exp(log_probs).view(self.board_size, self.board_size).cpu().numpy()
+            V = value.item()
+            child = NetworkNode(
+                    node.env,
+                    _p1,
+                    _p2,
+                    3 - node.player, node, P, V)
+            node.children[move] = child
+        return count
+    
+    def _expand_torch(self, arg):
+        m, _p1, _p2, board_tensor = arg
+        with torch.no_grad():
+            log_probs, value = self.network(board_tensor)
+        return (m, _p1, _p2, log_probs, value)
+        
+    def _batch(self, it):
+        while batch := list(islice(it, self.num_proc)):
+            yield batch
 
     def _evaluate(self, node):
         # correct eval if terminal
@@ -296,45 +359,24 @@ class NetworkMCTS:
                                 copy.deepcopy(env.unwrapped._p2),
                                 3 - self.root.player,
                                 None,
-                                self.network)
-
-class CUDAWorker:
-    def __init__(self, rank):
-        """Initialize a single CUDA worker."""
-        self.rank = rank
-        self.device = torch.device(f"cuda:{rank % torch.cuda.device_count()}" if torch.cuda.is_available() else "cpu")
-        torch.randn(1, device=self.device)  # Initialize CUDA for the worker
-
-    def run_task(self, func, arg):
-        """Run a function on the worker's CUDA device and return the result."""
-        #print("running task")
-        return func(arg)
-
-    def close(self):
-        """No specific cleanup required for a single worker."""
-        pass
+                                P, V)
 
 class CUDAWorkerPool:
-    def __init__(self, num_workers):
+    def __init__(self, num_streams):
         """Initialize a pool of CUDA workers."""
-        self.num_workers = num_workers
-        self.workers = [CUDAWorker(rank=i) for i in range(self.num_workers)]
+        self.device = torch.device("cuda:0")
+        self.num_streams = num_streams
+        self.streams = [torch.cuda.Stream(device=self.device) for _ in range(num_streams)]
+        torch.cuda.set_device(self.device)  # Ensure the process uses the correct GPU
 
-    def map(self, func, worker_tasks):
-        """Mimic Pool.map(): Distribute tasks across workers and await results."""
-
-        # Store results for each worker
-        results = []
-
-        #print("len", len(worker_tasks))
-        # Distribute tasks to workers
-        for i in range(len(worker_tasks)):
-            # Execute worker tasks and collect the results
-            results.extend([self.workers[i].run_task(func, worker_tasks[i])])
-
+    def run_task(self, func, arg, stream_id):
+        """Run a function on the worker's CUDA device and return the result."""
+        #print("running task")
+        with torch.cuda.stream(self.streams[stream_id % self.num_streams]):
+            return func(arg)
+        
+    def map(self, func, tasks):
+        """Distribute tasks across CUDA streams asynchronously."""
+        results = [self.run_task(func, tasks[i], i) for i in range(len(tasks))]
+        torch.cuda.synchronize()  # Ensure all tasks complete
         return results
-
-    def close(self):
-        """Close all workers."""
-        for worker in self.workers:
-            worker.close()

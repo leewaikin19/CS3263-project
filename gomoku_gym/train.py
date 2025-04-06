@@ -6,7 +6,7 @@ import torch.nn.functional as F
 import numpy as np
 from collections import deque
 import random
-from networks import GomokuNet, board_to_tensor
+from networks import GomokuNet
 from mcts_network import NetworkMCTS
 import gc
 import time
@@ -19,7 +19,7 @@ class SelfPlayTrainer:
         self.network = GomokuNet(self.board_size).to(self.device)
         self.optimizer = optim.Adam(self.network.parameters(), lr=0.001)
         self.memory = deque(maxlen=10000)
-        self.batch_size = 64
+        self.batch_size = 128
         self.p1done = False
         self.p2done = False
 
@@ -55,10 +55,7 @@ class SelfPlayTrainer:
                     policy[y][x] = child.N / total_visits
                 # if total_visits > 0: # finally it makes interesting moves
                 #     print("Move", move_num, "Total visits", total_visits)
-                #     env.unwrapped._render_frame()
-                # Store training data
-                board_tensor = self.network.board_to_tensor(env.unwrapped._p1, env.unwrapped._p2, root_node.player)
-                history.append((board_tensor, policy, root_node.player))
+                #     env.unwrapped._render_frame()                
 
                 # Make move
                 # In self_play method:
@@ -71,7 +68,12 @@ class SelfPlayTrainer:
                 mcts.move(best_move, env)
                 episode_over = terminated or truncated
                 print("Move", move_num, f"in {time.time() - start:.2f} seconds, {total_visits} total visits")
+
+                boards = self.network.board_to_tensor_symmetries(env.unwrapped._p1, env.unwrapped._p2, root_node.player, policy)
+                for board_tensor, policy in boards:
+                    history.append((board_tensor, policy, root_node.player))
                 move_num += 1
+
             env.unwrapped._render_frame()
             # Determine final reward
             if env.unwrapped._win(env.unwrapped._p1):
@@ -129,11 +131,11 @@ if __name__ == "__main__":
     trainer = SelfPlayTrainer()
     print("Cuda:", torch.cuda.is_available())
 
-    for iteration in range(100):
+    for iteration in range(1):
         print(f"Iteration {iteration + trainer.iter_cont + 1}")
-        while not trainer.p1done or not trainer.p2done:
+        #while not trainer.p1done or not trainer.p2done:
             #print(trainer.p1done, trainer.p2done)
-            trainer.self_play(num_games=2)
+        trainer.self_play(num_games=1)
         #trainer.self_play(num_games=1)
         for _ in range(20):
             loss = trainer.train()
