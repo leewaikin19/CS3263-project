@@ -50,23 +50,23 @@ def agent_move(mcts, prev_move):
     root_node = mcts.root
     total_visits = sum(child.N for child in root_node.children.values())
 
-    best_move = mcts.search_parallel(num_simulations=20) # 16 cores
+    best_move = mcts.search_parallel(num_simulations=80) # 16 cores
 
     mcts.move(best_move, env)
 
     print(f"Thought for {time.time() - start:.2f} seconds, {total_visits} total visits")
     return best_move
 
-def play():
+def playp1():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     board_size = env.unwrapped.board_size
     network = GomokuNet(board_size).to(device)
-    network.load_state_dict(torch.load("gomoku_net_149_best-copy.pth"))
+    network.load_state_dict(torch.load("gomoku_net_4x4_470-best.pth"))
 
     observation, info = env.reset()
 
-    mcts = NetworkMCTS(env, 1, network, board_size)
-    move_num = 1
+    # agent is player 2
+    mcts = NetworkMCTS(env, 2, network, board_size, 0)
     terminated = False
     while not terminated:
         valid = False
@@ -88,9 +88,41 @@ def play():
                 print("Invalid move. Error in AI Agent.")
         if terminated:
             break
-        move_num += 1
 
+def playp2():
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    board_size = env.unwrapped.board_size
+    network = GomokuNet(board_size).to(device)
+    network.load_state_dict(torch.load("gomoku_net_4x4_470-best.pth"))
 
-play()
+    observation, info = env.reset()
+
+    # agent is player 1
+    mcts = NetworkMCTS(env, 1, network, board_size, 0)
+    terminated = False
+    hx = None
+    hy = None
+    while not terminated:
+        valid = False
+        while not valid:
+            ax, ay = agent_move(mcts, (hx,hy))
+            observation, reward, terminated, truncated, info = env.step(np.array([ax, ay]))
+            valid = info.get("valid") # checks if the agent made a valid move
+            if not valid:
+                print("Invalid move. Error in AI Agent.")
+        if terminated:
+            break
+
+        valid = False
+        while not valid:
+            hx, hy = human_move()
+            observation, reward, terminated, truncated, info = env.step(np.array([hx, hy]))
+            valid = info.get("valid") # checks if the player made a valid move
+            if not valid:
+                print("Invalid move. Try again")
+        if terminated:
+            break
+
+playp1()
 
 env.close()
