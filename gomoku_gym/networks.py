@@ -81,7 +81,7 @@ class GomokuNet(nn.Module):
 
         # Stack into 3-channel tensor
         return torch.stack([board_p1, board_p2, player_ind], dim=0).unsqueeze(0).float()
-    
+
     def board_to_tensor_symmetries(self, p1, p2, current_player, policy):
         boards = []
         # Create binary boards
@@ -92,17 +92,17 @@ class GomokuNet(nn.Module):
         # rotate 0deg
         boards.append((torch.stack([board_p1, board_p2, player_ind], dim=0).unsqueeze(0).float(), policy))
         # rotate 90deg
-        boards.append((torch.stack([torch.rot90(board_p1), torch.rot90(board_p2), player_ind], dim=0).unsqueeze(0).float(), torch.rot90(policy)))
+        boards.append((torch.stack([torch.rot90(board_p1), torch.rot90(board_p2), player_ind], dim=0).unsqueeze(0).float(), np.rot90(policy)))
         # rotate 180deg
-        boards.append((torch.stack([torch.rot90(board_p1, 2), torch.rot90(board_p2, 2), player_ind], dim=0).unsqueeze(0).float(), torch.rot90(policy, 2)))
+        boards.append((torch.stack([torch.rot90(board_p1, 2), torch.rot90(board_p2, 2), player_ind], dim=0).unsqueeze(0).float(), np.rot90(policy, 2)))
         # rotate 270deg
-        boards.append((torch.stack([torch.rot90(board_p1, 3), torch.rot90(board_p2, 3), player_ind], dim=0).unsqueeze(0).float(), torch.rot90(policy, 3)))
-        # flip horizontally 
-        boards.append((torch.stack([torch.fliplr(board_p1), torch.flipud(board_p2), player_ind], dim=0).unsqueeze(0).float(), torch.fliplr(policy)))
-        # flip vertically 
-        boards.append((torch.stack([torch.flipud(board_p1), torch.flipud(board_p2), player_ind], dim=0).unsqueeze(0).float(), torch.flipud(policy)))
-        # flip diagonally 
-        boards.append((torch.stack([torch.transpose(board_p1, 0, 1), torch.transpose(board_p2, 0, 1), player_ind], dim=0).unsqueeze(0).float(), torch.transpose(policy, 0, 1)))
-        # flip anti-diagonally 
-        boards.append((torch.stack([torch.transpose(torch.flipud(torch.fliplr(board_p1)), 0, 1), torch.transpose(torch.flipud(torch.fliplr(board_p2)), 0, 1), player_ind], dim=0).unsqueeze(0).float(), torch.transpose(torch.flipud(torch.fliplr(policy)), 0, 1)))
+        boards.append((torch.stack([torch.rot90(board_p1, 3), torch.rot90(board_p2, 3), player_ind], dim=0).unsqueeze(0).float(), np.rot90(policy, 3)))
+        # flip horizontally
+        boards.append((torch.stack([torch.fliplr(board_p1), torch.fliplr(board_p2), player_ind], dim=0).unsqueeze(0).float(), np.fliplr(policy)))
+        # flip vertically
+        boards.append((torch.stack([torch.flipud(board_p1), torch.flipud(board_p2), player_ind], dim=0).unsqueeze(0).float(), np.flipud(policy)))
+        # flip diagonally
+        boards.append((torch.stack([torch.transpose(board_p1, 0, 1), torch.transpose(board_p2, 0, 1), player_ind], dim=0).unsqueeze(0).float(), np.transpose(policy)))
+        # flip anti-diagonally
+        boards.append((torch.stack([torch.transpose(torch.flipud(torch.fliplr(board_p1)), 0, 1), torch.transpose(torch.flipud(torch.fliplr(board_p2)), 0, 1), player_ind], dim=0).unsqueeze(0).float(), np.transpose(np.flipud(np.fliplr(policy)))))
         return boards
