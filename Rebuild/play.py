@@ -10,8 +10,8 @@ player = 1
 args = {
     'C': 2,
     'num_searches': 800,
-    'temperature': 1.25,
-    'dirichlet_epsilon': 0.25,
+    'temperature': 0,
+    'dirichlet_epsilon': 0,
     'dirichlet_alpha': 0.3
 }
 
