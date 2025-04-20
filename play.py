@@ -6,19 +6,21 @@ import numpy as np
 
 game = Gomoku()
 player = 1
+#player = -1
 
 args = {
     'C': 2,
     'num_searches': 800,
-    'temperature': 0,
-    'dirichlet_epsilon': 0,
+    'temperature': 1.25,
+    'dirichlet_epsilon': 0.15,
     'dirichlet_alpha': 0.3
 }
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 model = ResNet(game, 10, 128, device)
-checkpoint = torch.load('model_12_300_Gomoku_5x5.pt', map_location=device)
+#checkpoint = torch.load('weights/new_model_30_500_Gomoku_5x5.pt', map_location=device)
+checkpoint = torch.load('weights/model_43_150_Gomoku_5x5.pt', map_location=device)
 model.load_state_dict(checkpoint)
 model.eval()
 
