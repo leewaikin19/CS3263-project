@@ -1,0 +1,434 @@
+
+--- Tournament Start: 2025-04-14 02:03:33.061473 ---
+Device: cuda
+Best Model: model_51_150_Gomoku_5x5.pt
+Opponent Models: ['model_1_150_Gomoku_5x5.pt', 'model_5_150_Gomoku_5x5.pt', 'model_10_150_Gomoku_5x5.pt', 'model_15_150_Gomoku_5x5.pt', 'model_20_150_Gomoku_5x5.pt', 'model_25_150_Gomoku_5x5.pt', 'model_30_150_Gomoku_5x5.pt', 'model_35_150_Gomoku_5x5.pt', 'model_40_150_Gomoku_5x5.pt', 'model_45_150_Gomoku_5x5.pt', 'model_50_150_Gomoku_5x5.pt', 'new_model_43_500_Gomoku_5x5.pt', 'new_model_44_500_Gomoku_5x5.pt']
+Games per Matchup Role: 50
+MCTS Searches: 150
+Elo K-Factor: 32
+
+--- Initial Elo Ratings ---
+  model_51_150_Gomoku_5x5.pt: 1500
+  model_1_150_Gomoku_5x5.pt: 1500
+  model_5_150_Gomoku_5x5.pt: 1500
+  model_10_150_Gomoku_5x5.pt: 1500
+  model_15_150_Gomoku_5x5.pt: 1500
+  model_20_150_Gomoku_5x5.pt: 1500
+  model_25_150_Gomoku_5x5.pt: 1500
+  model_30_150_Gomoku_5x5.pt: 1500
+  model_35_150_Gomoku_5x5.pt: 1500
+  model_40_150_Gomoku_5x5.pt: 1500
+  model_45_150_Gomoku_5x5.pt: 1500
+  model_50_150_Gomoku_5x5.pt: 1500
+  new_model_43_500_Gomoku_5x5.pt: 1500
+  new_model_44_500_Gomoku_5x5.pt: 1500
+--------------------------------------------------
+
+
+--- Matchup: model_1_150_Gomoku_5x5.pt vs model_51_150_Gomoku_5x5.pt ---
+  Starting Elo - model_1_150_Gomoku_5x5.pt: 1500
+  Starting Elo - model_51_150_Gomoku_5x5.pt: 1500
+
+*** model_1_150_Gomoku_5x5.pt (P1) vs model_51_150_Gomoku_5x5.pt (P2) ***
+Round Summary (model_1_150_Gomoku_5x5.pt as P1):
+  Wins (Opponent): 0
+  Losses (Opponent): 0
+  Draws: 50
+  Elo after round - model_1_150_Gomoku_5x5.pt: 1500
+  Elo after round - model_51_150_Gomoku_5x5.pt: 1500
+
+*** model_51_150_Gomoku_5x5.pt (P1) vs model_1_150_Gomoku_5x5.pt (P2) ***
+Round Summary (model_51_150_Gomoku_5x5.pt as P1):
+  Wins (Best): 0
+  Losses (Best): 0
+  Draws: 50
+  Elo after round - model_51_150_Gomoku_5x5.pt: 1500
+  Elo after round - model_1_150_Gomoku_5x5.pt: 1500
+
+--- Overall Matchup Summary: model_1_150_Gomoku_5x5.pt vs model_51_150_Gomoku_5x5.pt ---
+  Total Games Played: 100
+  model_51_150_Gomoku_5x5.pt Wins: 0
+  model_1_150_Gomoku_5x5.pt Wins: 0
+  Draws: 100
+  Elo after matchup - model_51_150_Gomoku_5x5.pt: 1500
+  Elo after matchup - model_1_150_Gomoku_5x5.pt: 1500
+--------------------------------------------------
+
+
+--- Matchup: model_5_150_Gomoku_5x5.pt vs model_51_150_Gomoku_5x5.pt ---
+  Starting Elo - model_5_150_Gomoku_5x5.pt: 1500
+  Starting Elo - model_51_150_Gomoku_5x5.pt: 1500
+
+*** model_5_150_Gomoku_5x5.pt (P1) vs model_51_150_Gomoku_5x5.pt (P2) ***
+Round Summary (model_5_150_Gomoku_5x5.pt as P1):
+  Wins (Opponent): 0
+  Losses (Opponent): 0
+  Draws: 50
+  Elo after round - model_5_150_Gomoku_5x5.pt: 1500
+  Elo after round - model_51_150_Gomoku_5x5.pt: 1500
+
+*** model_51_150_Gomoku_5x5.pt (P1) vs model_5_150_Gomoku_5x5.pt (P2) ***
+Round Summary (model_51_150_Gomoku_5x5.pt as P1):
+  Wins (Best): 0
+  Losses (Best): 0
+  Draws: 50
+  Elo after round - model_51_150_Gomoku_5x5.pt: 1500
+  Elo after round - model_5_150_Gomoku_5x5.pt: 1500
+
+--- Overall Matchup Summary: model_5_150_Gomoku_5x5.pt vs model_51_150_Gomoku_5x5.pt ---
+  Total Games Played: 100
+  model_51_150_Gomoku_5x5.pt Wins: 0
+  model_5_150_Gomoku_5x5.pt Wins: 0
+  Draws: 100
+  Elo after matchup - model_51_150_Gomoku_5x5.pt: 1500
+  Elo after matchup - model_5_150_Gomoku_5x5.pt: 1500
+--------------------------------------------------
+
+
+--- Matchup: model_10_150_Gomoku_5x5.pt vs model_51_150_Gomoku_5x5.pt ---
+  Starting Elo - model_10_150_Gomoku_5x5.pt: 1500
+  Starting Elo - model_51_150_Gomoku_5x5.pt: 1500
+
+*** model_10_150_Gomoku_5x5.pt (P1) vs model_51_150_Gomoku_5x5.pt (P2) ***
+Round Summary (model_10_150_Gomoku_5x5.pt as P1):
+  Wins (Opponent): 0
+  Losses (Opponent): 0
+  Draws: 50
+  Elo after round - model_10_150_Gomoku_5x5.pt: 1500
+  Elo after round - model_51_150_Gomoku_5x5.pt: 1500
+
+*** model_51_150_Gomoku_5x5.pt (P1) vs model_10_150_Gomoku_5x5.pt (P2) ***
+Round Summary (model_51_150_Gomoku_5x5.pt as P1):
+  Wins (Best): 0
+  Losses (Best): 0
+  Draws: 50
+  Elo after round - model_51_150_Gomoku_5x5.pt: 1500
+  Elo after round - model_10_150_Gomoku_5x5.pt: 1500
+
+--- Overall Matchup Summary: model_10_150_Gomoku_5x5.pt vs model_51_150_Gomoku_5x5.pt ---
+  Total Games Played: 100
+  model_51_150_Gomoku_5x5.pt Wins: 0
+  model_10_150_Gomoku_5x5.pt Wins: 0
+  Draws: 100
+  Elo after matchup - model_51_150_Gomoku_5x5.pt: 1500
+  Elo after matchup - model_10_150_Gomoku_5x5.pt: 1500
+--------------------------------------------------
+
+
+--- Matchup: model_15_150_Gomoku_5x5.pt vs model_51_150_Gomoku_5x5.pt ---
+  Starting Elo - model_15_150_Gomoku_5x5.pt: 1500
+  Starting Elo - model_51_150_Gomoku_5x5.pt: 1500
+
+*** model_15_150_Gomoku_5x5.pt (P1) vs model_51_150_Gomoku_5x5.pt (P2) ***
+Round Summary (model_15_150_Gomoku_5x5.pt as P1):
+  Wins (Opponent): 0
+  Losses (Opponent): 0
+  Draws: 50
+  Elo after round - model_15_150_Gomoku_5x5.pt: 1500
+  Elo after round - model_51_150_Gomoku_5x5.pt: 1500
+
+*** model_51_150_Gomoku_5x5.pt (P1) vs model_15_150_Gomoku_5x5.pt (P2) ***
+Round Summary (model_51_150_Gomoku_5x5.pt as P1):
+  Wins (Best): 0
+  Losses (Best): 0
+  Draws: 50
+  Elo after round - model_51_150_Gomoku_5x5.pt: 1500
+  Elo after round - model_15_150_Gomoku_5x5.pt: 1500
+
+--- Overall Matchup Summary: model_15_150_Gomoku_5x5.pt vs model_51_150_Gomoku_5x5.pt ---
+  Total Games Played: 100
+  model_51_150_Gomoku_5x5.pt Wins: 0
+  model_15_150_Gomoku_5x5.pt Wins: 0
+  Draws: 100
+  Elo after matchup - model_51_150_Gomoku_5x5.pt: 1500
+  Elo after matchup - model_15_150_Gomoku_5x5.pt: 1500
+--------------------------------------------------
+
+
+--- Matchup: model_20_150_Gomoku_5x5.pt vs model_51_150_Gomoku_5x5.pt ---
+  Starting Elo - model_20_150_Gomoku_5x5.pt: 1500
+  Starting Elo - model_51_150_Gomoku_5x5.pt: 1500
+
+*** model_20_150_Gomoku_5x5.pt (P1) vs model_51_150_Gomoku_5x5.pt (P2) ***
+Round Summary (model_20_150_Gomoku_5x5.pt as P1):
+  Wins (Opponent): 0
+  Losses (Opponent): 0
+  Draws: 50
+  Elo after round - model_20_150_Gomoku_5x5.pt: 1500
+  Elo after round - model_51_150_Gomoku_5x5.pt: 1500
+
+*** model_51_150_Gomoku_5x5.pt (P1) vs model_20_150_Gomoku_5x5.pt (P2) ***
+Round Summary (model_51_150_Gomoku_5x5.pt as P1):
+  Wins (Best): 0
+  Losses (Best): 0
+  Draws: 50
+  Elo after round - model_51_150_Gomoku_5x5.pt: 1500
+  Elo after round - model_20_150_Gomoku_5x5.pt: 1500
+
+--- Overall Matchup Summary: model_20_150_Gomoku_5x5.pt vs model_51_150_Gomoku_5x5.pt ---
+  Total Games Played: 100
+  model_51_150_Gomoku_5x5.pt Wins: 0
+  model_20_150_Gomoku_5x5.pt Wins: 0
+  Draws: 100
+  Elo after matchup - model_51_150_Gomoku_5x5.pt: 1500
+  Elo after matchup - model_20_150_Gomoku_5x5.pt: 1500
+--------------------------------------------------
+
+
+--- Matchup: model_25_150_Gomoku_5x5.pt vs model_51_150_Gomoku_5x5.pt ---
+  Starting Elo - model_25_150_Gomoku_5x5.pt: 1500
+  Starting Elo - model_51_150_Gomoku_5x5.pt: 1500
+
+*** model_25_150_Gomoku_5x5.pt (P1) vs model_51_150_Gomoku_5x5.pt (P2) ***
+Round Summary (model_25_150_Gomoku_5x5.pt as P1):
+  Wins (Opponent): 0
+  Losses (Opponent): 0
+  Draws: 50
+  Elo after round - model_25_150_Gomoku_5x5.pt: 1500
+  Elo after round - model_51_150_Gomoku_5x5.pt: 1500
+
+*** model_51_150_Gomoku_5x5.pt (P1) vs model_25_150_Gomoku_5x5.pt (P2) ***
+Round Summary (model_51_150_Gomoku_5x5.pt as P1):
+  Wins (Best): 0
+  Losses (Best): 0
+  Draws: 50
+  Elo after round - model_51_150_Gomoku_5x5.pt: 1500
+  Elo after round - model_25_150_Gomoku_5x5.pt: 1500
+
+--- Overall Matchup Summary: model_25_150_Gomoku_5x5.pt vs model_51_150_Gomoku_5x5.pt ---
+  Total Games Played: 100
+  model_51_150_Gomoku_5x5.pt Wins: 0
+  model_25_150_Gomoku_5x5.pt Wins: 0
+  Draws: 100
+  Elo after matchup - model_51_150_Gomoku_5x5.pt: 1500
+  Elo after matchup - model_25_150_Gomoku_5x5.pt: 1500
+--------------------------------------------------
+
+
+--- Matchup: model_30_150_Gomoku_5x5.pt vs model_51_150_Gomoku_5x5.pt ---
+  Starting Elo - model_30_150_Gomoku_5x5.pt: 1500
+  Starting Elo - model_51_150_Gomoku_5x5.pt: 1500
+
+*** model_30_150_Gomoku_5x5.pt (P1) vs model_51_150_Gomoku_5x5.pt (P2) ***
+Round Summary (model_30_150_Gomoku_5x5.pt as P1):
+  Wins (Opponent): 0
+  Losses (Opponent): 0
+  Draws: 50
+  Elo after round - model_30_150_Gomoku_5x5.pt: 1500
+  Elo after round - model_51_150_Gomoku_5x5.pt: 1500
+
+*** model_51_150_Gomoku_5x5.pt (P1) vs model_30_150_Gomoku_5x5.pt (P2) ***
+Round Summary (model_51_150_Gomoku_5x5.pt as P1):
+  Wins (Best): 0
+  Losses (Best): 0
+  Draws: 50
+  Elo after round - model_51_150_Gomoku_5x5.pt: 1500
+  Elo after round - model_30_150_Gomoku_5x5.pt: 1500
+
+--- Overall Matchup Summary: model_30_150_Gomoku_5x5.pt vs model_51_150_Gomoku_5x5.pt ---
+  Total Games Played: 100
+  model_51_150_Gomoku_5x5.pt Wins: 0
+  model_30_150_Gomoku_5x5.pt Wins: 0
+  Draws: 100
+  Elo after matchup - model_51_150_Gomoku_5x5.pt: 1500
+  Elo after matchup - model_30_150_Gomoku_5x5.pt: 1500
+--------------------------------------------------
+
+
+--- Matchup: model_35_150_Gomoku_5x5.pt vs model_51_150_Gomoku_5x5.pt ---
+  Starting Elo - model_35_150_Gomoku_5x5.pt: 1500
+  Starting Elo - model_51_150_Gomoku_5x5.pt: 1500
+
+*** model_35_150_Gomoku_5x5.pt (P1) vs model_51_150_Gomoku_5x5.pt (P2) ***
+Round Summary (model_35_150_Gomoku_5x5.pt as P1):
+  Wins (Opponent): 0
+  Losses (Opponent): 0
+  Draws: 50
+  Elo after round - model_35_150_Gomoku_5x5.pt: 1500
+  Elo after round - model_51_150_Gomoku_5x5.pt: 1500
+
+*** model_51_150_Gomoku_5x5.pt (P1) vs model_35_150_Gomoku_5x5.pt (P2) ***
+Round Summary (model_51_150_Gomoku_5x5.pt as P1):
+  Wins (Best): 50
+  Losses (Best): 0
+  Draws: 0
+  Elo after round - model_51_150_Gomoku_5x5.pt: 1746
+  Elo after round - model_35_150_Gomoku_5x5.pt: 1254
+
+--- Overall Matchup Summary: model_35_150_Gomoku_5x5.pt vs model_51_150_Gomoku_5x5.pt ---
+  Total Games Played: 100
+  model_51_150_Gomoku_5x5.pt Wins: 50
+  model_35_150_Gomoku_5x5.pt Wins: 0
+  Draws: 50
+  Elo after matchup - model_51_150_Gomoku_5x5.pt: 1746
+  Elo after matchup - model_35_150_Gomoku_5x5.pt: 1254
+--------------------------------------------------
+
+
+--- Matchup: model_40_150_Gomoku_5x5.pt vs model_51_150_Gomoku_5x5.pt ---
+  Starting Elo - model_40_150_Gomoku_5x5.pt: 1500
+  Starting Elo - model_51_150_Gomoku_5x5.pt: 1746
+
+*** model_40_150_Gomoku_5x5.pt (P1) vs model_51_150_Gomoku_5x5.pt (P2) ***
+Round Summary (model_40_150_Gomoku_5x5.pt as P1):
+  Wins (Opponent): 0
+  Losses (Opponent): 0
+  Draws: 50
+  Elo after round - model_40_150_Gomoku_5x5.pt: 1618
+  Elo after round - model_51_150_Gomoku_5x5.pt: 1628
+
+*** model_51_150_Gomoku_5x5.pt (P1) vs model_40_150_Gomoku_5x5.pt (P2) ***
+Round Summary (model_51_150_Gomoku_5x5.pt as P1):
+  Wins (Best): 0
+  Losses (Best): 0
+  Draws: 50
+  Elo after round - model_51_150_Gomoku_5x5.pt: 1628
+  Elo after round - model_40_150_Gomoku_5x5.pt: 1618
+
+--- Overall Matchup Summary: model_40_150_Gomoku_5x5.pt vs model_51_150_Gomoku_5x5.pt ---
+  Total Games Played: 100
+  model_51_150_Gomoku_5x5.pt Wins: 0
+  model_40_150_Gomoku_5x5.pt Wins: 0
+  Draws: 100
+  Elo after matchup - model_51_150_Gomoku_5x5.pt: 1628
+  Elo after matchup - model_40_150_Gomoku_5x5.pt: 1618
+--------------------------------------------------
+
+
+--- Matchup: model_45_150_Gomoku_5x5.pt vs model_51_150_Gomoku_5x5.pt ---
+  Starting Elo - model_45_150_Gomoku_5x5.pt: 1500
+  Starting Elo - model_51_150_Gomoku_5x5.pt: 1628
+
+*** model_45_150_Gomoku_5x5.pt (P1) vs model_51_150_Gomoku_5x5.pt (P2) ***
+Round Summary (model_45_150_Gomoku_5x5.pt as P1):
+  Wins (Opponent): 0
+  Losses (Opponent): 0
+  Draws: 50
+  Elo after round - model_45_150_Gomoku_5x5.pt: 1559
+  Elo after round - model_51_150_Gomoku_5x5.pt: 1569
+
+*** model_51_150_Gomoku_5x5.pt (P1) vs model_45_150_Gomoku_5x5.pt (P2) ***
+Round Summary (model_51_150_Gomoku_5x5.pt as P1):
+  Wins (Best): 0
+  Losses (Best): 0
+  Draws: 50
+  Elo after round - model_51_150_Gomoku_5x5.pt: 1569
+  Elo after round - model_45_150_Gomoku_5x5.pt: 1559
+
+--- Overall Matchup Summary: model_45_150_Gomoku_5x5.pt vs model_51_150_Gomoku_5x5.pt ---
+  Total Games Played: 100
+  model_51_150_Gomoku_5x5.pt Wins: 0
+  model_45_150_Gomoku_5x5.pt Wins: 0
+  Draws: 100
+  Elo after matchup - model_51_150_Gomoku_5x5.pt: 1569
+  Elo after matchup - model_45_150_Gomoku_5x5.pt: 1559
+--------------------------------------------------
+
+
+--- Matchup: model_50_150_Gomoku_5x5.pt vs model_51_150_Gomoku_5x5.pt ---
+  Starting Elo - model_50_150_Gomoku_5x5.pt: 1500
+  Starting Elo - model_51_150_Gomoku_5x5.pt: 1569
+
+*** model_50_150_Gomoku_5x5.pt (P1) vs model_51_150_Gomoku_5x5.pt (P2) ***
+Round Summary (model_50_150_Gomoku_5x5.pt as P1):
+  Wins (Opponent): 0
+  Losses (Opponent): 0
+  Draws: 50
+  Elo after round - model_50_150_Gomoku_5x5.pt: 1530
+  Elo after round - model_51_150_Gomoku_5x5.pt: 1539
+
+*** model_51_150_Gomoku_5x5.pt (P1) vs model_50_150_Gomoku_5x5.pt (P2) ***
+Round Summary (model_51_150_Gomoku_5x5.pt as P1):
+  Wins (Best): 0
+  Losses (Best): 0
+  Draws: 50
+  Elo after round - model_51_150_Gomoku_5x5.pt: 1539
+  Elo after round - model_50_150_Gomoku_5x5.pt: 1530
+
+--- Overall Matchup Summary: model_50_150_Gomoku_5x5.pt vs model_51_150_Gomoku_5x5.pt ---
+  Total Games Played: 100
+  model_51_150_Gomoku_5x5.pt Wins: 0
+  model_50_150_Gomoku_5x5.pt Wins: 0
+  Draws: 100
+  Elo after matchup - model_51_150_Gomoku_5x5.pt: 1539
+  Elo after matchup - model_50_150_Gomoku_5x5.pt: 1530
+--------------------------------------------------
+
+
+--- Matchup: new_model_43_500_Gomoku_5x5.pt vs model_51_150_Gomoku_5x5.pt ---
+  Starting Elo - new_model_43_500_Gomoku_5x5.pt: 1500
+  Starting Elo - model_51_150_Gomoku_5x5.pt: 1539
+
+*** new_model_43_500_Gomoku_5x5.pt (P1) vs model_51_150_Gomoku_5x5.pt (P2) ***
+Round Summary (new_model_43_500_Gomoku_5x5.pt as P1):
+  Wins (Opponent): 0
+  Losses (Opponent): 0
+  Draws: 50
+  Elo after round - new_model_43_500_Gomoku_5x5.pt: 1515
+  Elo after round - model_51_150_Gomoku_5x5.pt: 1524
+
+*** model_51_150_Gomoku_5x5.pt (P1) vs new_model_43_500_Gomoku_5x5.pt (P2) ***
+Round Summary (model_51_150_Gomoku_5x5.pt as P1):
+  Wins (Best): 0
+  Losses (Best): 0
+  Draws: 50
+  Elo after round - model_51_150_Gomoku_5x5.pt: 1524
+  Elo after round - new_model_43_500_Gomoku_5x5.pt: 1515
+
+--- Overall Matchup Summary: new_model_43_500_Gomoku_5x5.pt vs model_51_150_Gomoku_5x5.pt ---
+  Total Games Played: 100
+  model_51_150_Gomoku_5x5.pt Wins: 0
+  new_model_43_500_Gomoku_5x5.pt Wins: 0
+  Draws: 100
+  Elo after matchup - model_51_150_Gomoku_5x5.pt: 1524
+  Elo after matchup - new_model_43_500_Gomoku_5x5.pt: 1515
+--------------------------------------------------
+
+
+--- Matchup: new_model_44_500_Gomoku_5x5.pt vs model_51_150_Gomoku_5x5.pt ---
+  Starting Elo - new_model_44_500_Gomoku_5x5.pt: 1500
+  Starting Elo - model_51_150_Gomoku_5x5.pt: 1524
+
+*** new_model_44_500_Gomoku_5x5.pt (P1) vs model_51_150_Gomoku_5x5.pt (P2) ***
+Round Summary (new_model_44_500_Gomoku_5x5.pt as P1):
+  Wins (Opponent): 0
+  Losses (Opponent): 0
+  Draws: 50
+  Elo after round - new_model_44_500_Gomoku_5x5.pt: 1507
+  Elo after round - model_51_150_Gomoku_5x5.pt: 1517
+
+*** model_51_150_Gomoku_5x5.pt (P1) vs new_model_44_500_Gomoku_5x5.pt (P2) ***
+Round Summary (model_51_150_Gomoku_5x5.pt as P1):
+  Wins (Best): 0
+  Losses (Best): 0
+  Draws: 50
+  Elo after round - model_51_150_Gomoku_5x5.pt: 1517
+  Elo after round - new_model_44_500_Gomoku_5x5.pt: 1507
+
+--- Overall Matchup Summary: new_model_44_500_Gomoku_5x5.pt vs model_51_150_Gomoku_5x5.pt ---
+  Total Games Played: 100
+  model_51_150_Gomoku_5x5.pt Wins: 0
+  new_model_44_500_Gomoku_5x5.pt Wins: 0
+  Draws: 100
+  Elo after matchup - model_51_150_Gomoku_5x5.pt: 1517
+  Elo after matchup - new_model_44_500_Gomoku_5x5.pt: 1507
+--------------------------------------------------
+
+
+--- Final Elo Ratings (End of Tournament) ---
+  model_40_150_Gomoku_5x5.pt: 1618
+  model_45_150_Gomoku_5x5.pt: 1559
+  model_50_150_Gomoku_5x5.pt: 1530
+  model_51_150_Gomoku_5x5.pt: 1517
+  new_model_43_500_Gomoku_5x5.pt: 1515
+  new_model_44_500_Gomoku_5x5.pt: 1507
+  model_1_150_Gomoku_5x5.pt: 1500
+  model_5_150_Gomoku_5x5.pt: 1500
+  model_10_150_Gomoku_5x5.pt: 1500
+  model_15_150_Gomoku_5x5.pt: 1500
+  model_20_150_Gomoku_5x5.pt: 1500
+  model_25_150_Gomoku_5x5.pt: 1500
+  model_30_150_Gomoku_5x5.pt: 1500
+  model_35_150_Gomoku_5x5.pt: 1254
+--------------------------------------------------
+--- Tournament End: 2025-04-14 04:30:51.972841 ---
